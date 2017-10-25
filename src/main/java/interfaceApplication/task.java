@@ -153,39 +153,43 @@ public class task {
 					JSONObject loopJson = taskInfo.getJson("loop");
 					int loopMode = loopJson.getInt("mode");
 					String loopURL = null;
-					urlContent nextUrlObj;
-					switch(numberHelper.number2int(loopMode) ) {
-					case 1://通过起始页获得
-						nextUrlObj = getURL( host, contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
-						loopURL = contentURL;
-						break;
-					case 2://通过内容页获得
-						nextUrlObj = getURL( host, contentURL, loopJson.getString("selecter") );//获得下一页URL
-						loopURL = nextUrlObj.getCur();
-						break;
-					default:
-						loopURL = null;
-						break;
-					}
-					contentURL = loopURL;
-					//---------------开始采集内容
-					Document doc = Jsoup.connect(contentURL).get();
-					JSONArray dataBlock = taskInfo.getJsonArray("data");
-					JSONObject block;
-					JSONObject dataResult = new JSONObject();
-					for(Object obj : dataBlock) {
-						block = (JSONObject)obj;
-						dataResult.put( block.getString("key") , dataSelecter(doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
-					}
-					//---------------投递采集来 的数据
-					String collect = taskInfo.getString("collectApi");
-					if( StringHelper.InvaildString( collect ) ) {
-						execRequest._run(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) );
-						rb = true;
-					}
-					else {
-						nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
-					}
+					do {
+						urlContent nextUrlObj;
+						switch(numberHelper.number2int(loopMode) ) {
+						case 1://通过起始页获得
+							nextUrlObj = getURL( host, contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
+							loopURL = contentURL;
+							break;
+						case 2://通过内容页获得
+							nextUrlObj = getURL( host, contentURL, loopJson.getString("selecter") );//获得下一页URL
+							loopURL = nextUrlObj.getCur();
+							break;
+						default:
+							loopURL = null;
+							break;
+						}
+						contentURL = loopURL;
+						//---------------开始采集内容
+						if( contentURL != null ) {
+							Document doc = Jsoup.connect(contentURL).get();
+							JSONArray dataBlock = taskInfo.getJsonArray("data");
+							JSONObject block;
+							JSONObject dataResult = new JSONObject();
+							for(Object obj : dataBlock) {
+								block = (JSONObject)obj;
+								dataResult.put( block.getString("key") , dataSelecter(doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
+							}
+							//---------------投递采集来 的数据
+							String collect = taskInfo.getString("collectApi");
+							if( StringHelper.InvaildString( collect ) ) {
+								execRequest._run(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) );
+								rb = true;
+							}
+							else {
+								nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
+							}
+						}
+					}while( contentURL != null);
 					//-------------------------
 				} catch (IOException e) {
 					nlogger.logout("url" + contentURL + "  ->异常");
