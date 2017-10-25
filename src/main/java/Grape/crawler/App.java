@@ -1,0 +1,61 @@
+package Grape.crawler;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import com.sun.star.configuration.theDefaultProvider;
+
+import apps.appsProxy;
+import interfaceApplication.task;
+import security.codec;
+import time.TimeHelper;
+
+/**
+ * Hello world!
+ *
+ */
+public class App 
+{
+    @SuppressWarnings("unchecked")
+	public static void main( String[] args )
+    {
+        System.out.println( "Hello World!" );
+        JSONObject json = new JSONObject();
+        json.put("configName","{\"cache\":\"redis\",\"other\":[],\"db\":\"mongodb\"}");
+        json.put("tableConfig", "{\"crawlerTask\":{\"tableName\":\"crawlerTask\",\"rule\":[{\"fieldName\":\"name\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"desc\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"info\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"state\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"runtime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":27},{\"fieldName\":\"neartime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"runstate\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"time\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":27}]}}");
+        appsProxy.testConfigValue(10, "crawler", json );
+        task _task = new task();
+        //System.out.println( _task.test("putao520") );
+        json = new JSONObject();
+        
+        json.put("name", "测试任务");
+        json.put("desc", "测试任务的说明");
+        json.put("time", TimeHelper.nowMillis());
+        json.put("state", 0);
+        json.put("runtime", 60 * 1000);
+        json.put("neartime", TimeHelper.nowMillis());
+        json.put("runstate", 0);
+        json.put("owner", "putao520");
+        JSONObject _info = new JSONObject();
+        _info.put("host", "http://www.putao282.com");
+        _info.put("init", (new JSONObject("base","/base.php")).puts("selecter", ""));
+        _info.put("loop", (new JSONObject("mode",1)).puts("selecter", ""));
+        JSONArray _array = new JSONArray();
+        _array.add((new JSONObject("key","title")).puts("selecter", "").puts("isTEXT", true));
+        _info.put("data", _array);
+        _info.put("collectApi", "http://api.putao282.com");
+        json.put("info", _info);
+        /*
+        String rs = _task.insert(json.toJSONString());//测试添加任务
+        System.out.println(rs);
+        JSONObject updateJSON = new JSONObject();
+        updateJSON.puts("runstate", 1);
+        rs = _task.updateOne("59eda67949d3e095344d5054", codec.EncodeHtmlTag(codec.encodebase64(updateJSON.toJSONString())) );//测试更新任务
+        System.out.println(rs);
+        System.out.println( _task.delete("59eda67949d3e095344d5054") );//测试删除任务
+        */
+        _task.DelayBlock();
+        
+    }
+}
+
