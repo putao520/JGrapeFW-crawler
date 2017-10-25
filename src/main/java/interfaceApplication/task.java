@@ -182,7 +182,16 @@ public class task {
 							//---------------投递采集来 的数据
 							String collect = taskInfo.getString("collectApi");
 							if( StringHelper.InvaildString( collect ) ) {
-								execRequest._run(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) );
+								JSONObject rjson = JSONObject.toJSON( (String)execRequest._run(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) ) );
+								/*
+								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
+								 * */
+								if( rjson != null && rjson.containsKey("errorcode") ) {
+									if( rjson.getInt("errorcode") != 0 ) {
+										System.out.println("crawler system breaking by remoteSystem!");
+										break;
+									}
+								}
 								rb = true;
 							}
 							else {
