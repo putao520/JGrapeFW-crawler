@@ -96,7 +96,7 @@ public class task {
 				//分块方式获得数据表数据，并执行过滤，最后生成结果值 
 				distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
 				if( crawlerLocker.lock() ) {
-					execRequest._run("/crawler/DelayBlock");
+					execRequest._run("/crawler/task/DelayBlock");
 					crawlerLocker.releaseLocker();
 				}
 			}
@@ -220,7 +220,9 @@ public class task {
 	private String dataSelecter(Document doc , List<crawlerSelector> sels,boolean isTEXT){
 		Object jqObj = doc;
 		Elements array = null;
+		Elements tempArray = null;
 		for(crawlerSelector sel : sels) {
+			tempArray = new Elements();
 			/*
 			if( jqObj instanceof Document ) {
 				array = ((Document)jqObj).select(sel.Selector());
@@ -237,9 +239,12 @@ public class task {
 				int stepLength = sel.getStepLength();
 				curPos = sel.getDirection() ? curPos - stepLength : curPos + stepLength;
 			}
-			jqObj = array.get(curPos);
+			for(int i = curPos; i< curPos + sel.Length(); i++ ) {
+				tempArray.add( array.get(i) );
+			}
+			jqObj = tempArray;
 		}
-		Element node = (Element)jqObj;
+		Element node = ((Elements)jqObj).get(0);
 		return isTEXT ? node.text() : node.html();
 	}
 	
@@ -259,27 +264,30 @@ public class task {
 			startIdx = 0;
 			length = 1;
 			stepLength = 1;
-			String[] groupA = grape0[i].split(":");
-			if( groupA.length > 1 ) {//包含额外参数
-				String[] groupB = groupA[1].split(" ");
-				if( groupB.length > 1 ) {//包含额外参数2
-					String[] groupD = groupB[1].split("@");
-					if( groupD.length > 1 ) {//包含步进长度
-						stepLength = Integer.valueOf(groupD[1]).intValue();
-					}
-					switch (groupD[0].toUpperCase()) {
+			String[] groupA = grape0[i].split(":");//
+			if( groupA.length > 1 ) {//包含选择器额外参数
+				String tmpStr = groupA[1];
+				if( groupA[1].indexOf("-") > 0 ) {//判断是否包含范围    
+					String[] areaPair = groupA[1].split("-");
+					startIdx = numberHelper.number2int(areaPair[0]);
+					length = numberHelper.number2int(areaPair[1]);
+				}
+				if( groupA[1].indexOf("@") > 0 ) {//判断是否包含范围    
+					String[] areaPair = groupA[1].split("@");
+					tmpStr = areaPair[0];
+					stepLength = numberHelper.number2int(areaPair[1]);
+				}
+				switch (tmpStr.toUpperCase()) {
 					case "NEXT":
 						directState = false;
 						break;
 					case "PREV":
 						directState = true;
 						break;
-					}
-				}
-				String[] groupC = groupB[0].split("-");
-				startIdx = Integer.valueOf(groupC[0]).intValue();
-				if( groupC.length > 1 ) {
-					length = Integer.valueOf(groupC[1]).intValue() - Integer.valueOf(groupC[0]).intValue();
+					default:
+						directState = null;
+						startIdx = numberHelper.number2int(tmpStr);
+						break;
 				}
 			}
 			rl.add(new crawlerSelector(groupA[0], startIdx, length, directState,stepLength));
@@ -491,7 +499,7 @@ public class task {
 	 * @param eid
 	 * @return
 	 */
-	public String open(String eid) {
+	public String enable(String eid) {
 		if( !StringHelper.InvaildString(eid) ){
 			return rMsg.netMSG(false, "非法数据");
 		}
@@ -501,7 +509,7 @@ public class task {
 	 * @param eid
 	 * @return
 	 */
-	public String close(String eid) {
+	public String disable(String eid) {
 		if( !StringHelper.InvaildString(eid) ){
 			return rMsg.netMSG(false, "非法数据");
 		}
