@@ -168,7 +168,6 @@ public class task {
 							//---------------投递采集来 的数据
 							String collect = taskInfo.getString("collectApi");
 							if( StringHelper.InvaildString( collect ) ) {
-								//JSONObject rjson = JSONObject.toJSON( (String)execRequest._run(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) ) );
 								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) ) );
 								/*
 								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
@@ -376,7 +375,7 @@ public class task {
 	@apiType(tpye.sessionApi)
 	public String insert(String json) {
 		Object ob = null;
-		JSONObject jsonObj = JSONObject.toJSON(json);
+		JSONObject jsonObj = JSONObject.toJSON( codec.DecodeFastJSON( json ));
 		if( jsonObj != null ){
 			jsonObj.put("time", TimeHelper.nowMillis() );
 			ob = db.data( jsonObj ).autoComplete().insertOnce();
@@ -411,9 +410,7 @@ public class task {
 		if( !StringHelper.InvaildString(eid) ){
 			return rMsg.netMSG(false, "无效任务");
 		}
-		json = codec.DecodeHtmlTag(json);
-		json = codec.decodebase64(json);
-		JSONObject rjson = JSONObject.toJSON(json);
+		JSONObject rjson = JSONObject.toJSON(codec.DecodeFastJSON(json));
 		if( rjson == null ){
 			return rMsg.netMSG(false, "非法操作");
 		}
