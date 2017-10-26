@@ -155,21 +155,6 @@ public class task {
 					int loopMode = loopJson.getInt("mode");
 					String loopURL = null;
 					do {
-						urlContent nextUrlObj;
-						switch(numberHelper.number2int(loopMode) ) {
-						case 1://通过起始页获得
-							nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
-							loopURL = contentURL;
-							break;
-						case 2://通过内容页获得
-							nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
-							loopURL = nextUrlObj.getCur();
-							break;
-						default:
-							loopURL = null;
-							break;
-						}
-						contentURL = loopURL;
 						//---------------开始采集内容
 						if( contentURL != null ) {
 							Document doc = Jsoup.connect(contentURL).get();
@@ -199,6 +184,21 @@ public class task {
 								nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
 							}
 						}
+						urlContent nextUrlObj;
+						switch(numberHelper.number2int(loopMode) ) {
+						case 1://通过起始页获得
+							nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
+							loopURL = contentURL;
+							break;
+						case 2://通过内容页获得
+							nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
+							loopURL = nextUrlObj.getCur();
+							break;
+						default:
+							loopURL = null;
+							break;
+						}
+						contentURL = loopURL;
 					}while( contentURL != null);
 					//-------------------------
 				} catch (IOException e) {
