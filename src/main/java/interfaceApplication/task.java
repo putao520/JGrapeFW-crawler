@@ -59,10 +59,11 @@ public class task {
 		private String filterURL(String url) {
 			if( curhref != null ) {
 				if( StringHelper.left(url, 1).equals(".") ) {//如果是点开头
+					curhref += " ";
 					String[] urls = curhref.split("/");
 					
 					urls[ urls.length - 1] =StringHelper.fixLeft(StringHelper.fixLeft(url, "."), "/");
-					url = StringHelper.join(urls, "/" );
+					url = StringHelper.join(urls, "/" ).trim();
 				}
 			}
 			return url;
