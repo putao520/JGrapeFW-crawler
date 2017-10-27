@@ -30,6 +30,7 @@ import offices.excelHelper;
 import rpc.execRequest;
 import security.codec;
 import string.StringHelper;
+import thread.ThreadEx;
 import time.TimeHelper;
 
 /*
@@ -92,14 +93,12 @@ public class task {
 		if( ticktockThread !=  null ) {
 			ticktockThread =new Thread(() -> {
 				while(stateRun) {
-					try {
-						Thread.sleep(1000);//每秒检查一次任务
-						distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
-						if( crawlerLocker.lock() ) {
-							execRequest._run("/crawler/task/DelayBlock");
-							crawlerLocker.releaseLocker();
-						}
-					} catch (InterruptedException e) {}
+					ThreadEx.CurrentBlock_Sleep(1000);
+					distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
+					if( crawlerLocker.lock() ) {
+						execRequest._run("/crawler/task/DelayBlock");
+						crawlerLocker.releaseLocker();
+					}
 					//分块方式获得数据表数据，并执行过滤，最后生成结果值 
 				}
 			});
