@@ -7,6 +7,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.naming.InitialContext;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
@@ -93,6 +95,8 @@ public class task {
 	private String pkString;
 	static {
 		stateRun = true;
+	}
+	public void init() {
 		if( ticktockThread ==  null ) {
 			ticktockThread =new Thread(() -> {
 				while(stateRun) {
@@ -106,7 +110,6 @@ public class task {
 				}
 			});
 			ticktockThread.run();
-			
 		}
 	}
 	//遍历任务
@@ -363,14 +366,16 @@ public class task {
 		}
 		return result;
 	}
-	
+	/*
 	@Override
 	protected void finalize() throws Throwable {
 		// TODO Auto-generated method stub
 		stateRun = false;
 		super.finalize();
 	}
+	*/
 	public task() {
+		init();
 		db = new GrapeTreeDBModel();
 		GrapeDBSpecField gdb = new GrapeDBSpecField();
 		gdb.importDescription( appsProxy.tableConfig("crawlerTask") );
