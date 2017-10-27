@@ -95,8 +95,6 @@ public class task {
 	private String pkString;
 	static {
 		stateRun = true;
-	}
-	public void init() {
 		if( ticktockThread ==  null ) {
 			ticktockThread =new Thread(() -> {
 				while(stateRun) {
@@ -375,7 +373,6 @@ public class task {
 	}
 	*/
 	public task() {
-		init();
 		db = new GrapeTreeDBModel();
 		GrapeDBSpecField gdb = new GrapeDBSpecField();
 		gdb.importDescription( appsProxy.tableConfig("crawlerTask") );
