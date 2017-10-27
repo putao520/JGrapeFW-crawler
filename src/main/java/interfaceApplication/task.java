@@ -101,7 +101,8 @@ public class task {
 					ThreadEx.CurrentBlock_Sleep(1000);
 					distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
 					if( crawlerLocker.lock() ) {
-						execRequest._run("/crawler/task/DelayBlock");
+						//JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) ) );
+						appsProxy.proxyCall("/crawler/task/DelayBlock");
 						crawlerLocker.releaseLocker();
 					}
 					//分块方式获得数据表数据，并执行过滤，最后生成结果值 
