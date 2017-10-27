@@ -84,24 +84,27 @@ public class task {
 	     running, idle, error 
 	}
 	private static boolean stateRun;
-	private static final Thread ticktockThread;
+	private static Thread ticktockThread = null;
 	private GrapeTreeDBModel db;
 	private String pkString;
 	static {
 		stateRun = true;
-		ticktockThread =new Thread(() -> {
-			while(stateRun) {
-				try {
-					Thread.sleep(1000);//每秒检查一次任务 
-				} catch (InterruptedException e) {}
-				//分块方式获得数据表数据，并执行过滤，最后生成结果值 
-				distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
-				if( crawlerLocker.lock() ) {
-					execRequest._run("/crawler/task/DelayBlock");
-					crawlerLocker.releaseLocker();
+		if( ticktockThread !=  null ) {
+			ticktockThread =new Thread(() -> {
+				while(stateRun) {
+					try {
+						Thread.sleep(1000);//每秒检查一次任务
+						distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
+						if( crawlerLocker.lock() ) {
+							execRequest._run("/crawler/task/DelayBlock");
+							crawlerLocker.releaseLocker();
+						}
+					} catch (InterruptedException e) {}
+					//分块方式获得数据表数据，并执行过滤，最后生成结果值 
 				}
-			}
-		});
+			});
+			ticktockThread.run();
+		}
 	}
 	//遍历任务
 	@SuppressWarnings("unchecked")
