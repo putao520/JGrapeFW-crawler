@@ -3,6 +3,9 @@ package interfaceApplication;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -85,12 +88,23 @@ public class task {
 	     running, idle, error 
 	}
 	private static boolean stateRun;
-	private static Thread ticktockThread = null;
+	private static ScheduledExecutorService ticktockThread = null;
+	//Thread ticktockThread = null;
 	private GrapeTreeDBModel db;
 	private String pkString;
 	static {
 		stateRun = true;
 		if( ticktockThread !=  null ) {
+			ticktockThread = Executors.newSingleThreadScheduledExecutor();
+			ticktockThread.scheduleAtFixedRate(() -> {
+				distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
+				if( crawlerLocker.lock() ) {
+					execRequest._run("/crawler/task/DelayBlock");
+					crawlerLocker.releaseLocker();
+				}
+				//分块方式获得数据表数据，并执行过滤，最后生成结果值 
+			}, 0, 1, TimeUnit.SECONDS); 
+			/*
 			ticktockThread =new Thread(() -> {
 				while(stateRun) {
 					ThreadEx.CurrentBlock_Sleep(1000);
@@ -103,6 +117,7 @@ public class task {
 				}
 			});
 			ticktockThread.run();
+			*/
 		}
 	}
 	//遍历任务
