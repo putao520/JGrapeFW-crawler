@@ -88,23 +88,12 @@ public class task {
 	     running, idle, error 
 	}
 	private static boolean stateRun;
-	private static ScheduledExecutorService ticktockThread = null;
-	//Thread ticktockThread = null;
+	private static Thread ticktockThread = null;
 	private GrapeTreeDBModel db;
 	private String pkString;
 	static {
 		stateRun = true;
-		if( ticktockThread !=  null ) {
-			ticktockThread = Executors.newSingleThreadScheduledExecutor();
-			ticktockThread.scheduleAtFixedRate(() -> {
-				distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
-				if( crawlerLocker.lock() ) {
-					execRequest._run("/crawler/task/DelayBlock");
-					crawlerLocker.releaseLocker();
-				}
-				//分块方式获得数据表数据，并执行过滤，最后生成结果值 
-			}, 0, 1, TimeUnit.SECONDS); 
-			/*
+		if( ticktockThread ==  null ) {
 			ticktockThread =new Thread(() -> {
 				while(stateRun) {
 					ThreadEx.CurrentBlock_Sleep(1000);
@@ -117,7 +106,7 @@ public class task {
 				}
 			});
 			ticktockThread.run();
-			*/
+			
 		}
 	}
 	//遍历任务
