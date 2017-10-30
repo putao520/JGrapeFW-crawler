@@ -2,6 +2,7 @@ package interfaceApplication;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,6 +24,7 @@ import com.sun.star.uno.RuntimeException;
 import Concurrency.distributedLocker;
 import JGrapeSystem.numberHelper;
 import JGrapeSystem.rMsg;
+import apps.appIns;
 import apps.appsProxy;
 import database.db;
 import httpClient.request;
@@ -90,26 +92,42 @@ public class task {
 	     running, idle, error 
 	}
 	private static boolean stateRun;
-	private static Thread ticktockThread = null;
+	//private static Thread ticktockThread = null;
+	private static HashMap<Integer, ScheduledExecutorService> ticktockThread = null;
 	private GrapeTreeDBModel db;
 	private String pkString;
 	static {
 		stateRun = true;
-		if( ticktockThread ==  null ) {
-			ticktockThread =new Thread(() -> {
-				while(stateRun) {
+		ticktockThread = new HashMap<>();
+	}
+	public String startService(){
+		appIns apps = appsProxy.getCurrentAppInfo();
+		if( apps != null && !ticktockThread.containsKey(apps.appid) ) {
+			ScheduledExecutorService serv = Executors.newSingleThreadScheduledExecutor();;
+			serv.scheduleAtFixedRate(() -> {
+				//while(stateRun) {
+					appsProxy.setCurrentAppInfo(apps);
 					ThreadEx.CurrentBlock_Sleep(1000);
 					distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
 					if( crawlerLocker.lock() ) {
-						//JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) ) );
+						//需要复制环境 
 						appsProxy.proxyCall("/crawler/task/DelayBlock");
+						
 						crawlerLocker.releaseLocker();
 					}
 					//分块方式获得数据表数据，并执行过滤，最后生成结果值 
-				}
-			});
-			ticktockThread.run();
+				//}
+			}, 0, 1, TimeUnit.SECONDS);
+			ticktockThread.put(apps.appid, serv);
 		}
+		return rMsg.netState(true);
+	}
+	public String stopService() {
+		appIns apps = appsProxy.getCurrentAppInfo();
+		if( ticktockThread.containsKey(apps.appid) ) {
+			ticktockThread.remove(apps.appid);
+		}
+		return rMsg.netState(true);
 	}
 	//遍历任务
 	@SuppressWarnings("unchecked")

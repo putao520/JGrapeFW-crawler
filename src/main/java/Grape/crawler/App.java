@@ -23,8 +23,13 @@ public class App
         JSONObject json = new JSONObject();
         json.put("configName","{\"cache\":\"redis\",\"other\":[],\"db\":\"mongodb\"}");
         json.put("tableConfig", "{\"crawlerTask\":{\"tableName\":\"crawlerTask\",\"rule\":[{\"fieldName\":\"name\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"desc\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"info\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"state\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"runtime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":27},{\"fieldName\":\"neartime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"runstate\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"time\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":27}]}}");
-        appsProxy.testConfigValue(10, "crawler", json );
+        appsProxy.testConfigValue(17, "crawler", json );
+        
+        //appsProxy.proxyCall("/crawler/task/DelayBlock");
         task _task = new task();
+        _task.startService();//为当前APP开启定时服务
+        
+        
         //System.out.println( _task.test("putao520") );
         json = new JSONObject();
         
