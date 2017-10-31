@@ -114,9 +114,7 @@ public class task {
 				serv.scheduleAtFixedRate(() -> {
 					//while(stateRun) {
 					distributedLocker sLocker = new distributedLocker(lockerName);
-				
-					appsProxy.setCurrentAppInfo(apps);
-					ThreadEx.CurrentBlock_Sleep(1000);
+		
 					distributedLocker crawlerLocker = new distributedLocker(lockerName);
 					if( crawlerLocker.lock() ) {
 						//需要复制环境 
@@ -226,16 +224,17 @@ public class task {
 							String collect = taskInfo.getString("collectApi");
 							if( StringHelper.InvaildString( collect ) ) {
 								
-								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
-								execRequest.setChannelValue(grapeHttpUnit.formdata, postParam);
 								
-								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect) );
+								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
+								
+								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam) );
 								/*
 								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
 								 * */
 								if( rjson != null && rjson.containsKey("errorcode") ) {
 									if( rjson.getInt("errorcode") != 0 ) {
 										System.out.println("crawler system breaking by remoteSystem!");
+										contentURL = null;
 										break;
 									}
 								}

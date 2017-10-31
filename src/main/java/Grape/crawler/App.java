@@ -5,6 +5,7 @@ import org.json.simple.JSONObject;
 
 import com.sun.star.configuration.theDefaultProvider;
 
+import apps.appIns;
 import apps.appsProxy;
 import interfaceApplication.task;
 import security.codec;
@@ -19,6 +20,7 @@ public class App
     @SuppressWarnings("unchecked")
 	public static void main( String[] args )
     {
+    	
         System.out.println( "Hello World!" );
         JSONObject json = new JSONObject();
         json.put("configName","{\"cache\":\"redis\",\"other\":[],\"db\":\"mongodb\"}");
@@ -29,7 +31,7 @@ public class App
         task _task = new task();
         _task.startService();//为当前APP开启定时服务
         
-        
+        /*
         //System.out.println( _task.test("putao520") );
         json = new JSONObject();
         
@@ -50,6 +52,7 @@ public class App
         _info.put("data", _array);
         _info.put("collectApi", "http://api.putao282.com");
         json.put("info", _info);
+        */
         /*
         String rs = _task.insert(json.toJSONString());//测试添加任务
         System.out.println(rs);
@@ -59,7 +62,7 @@ public class App
         System.out.println(rs);
         System.out.println( _task.delete("59eda67949d3e095344d5054") );//测试删除任务
         */
-        _task.DelayBlock();
+
         
     }
 }
