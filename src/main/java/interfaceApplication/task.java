@@ -227,7 +227,7 @@ public class task {
 								
 								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
 								
-								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam) );
+								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,appsProxy.getCurrentAppInfo()) );
 								/*
 								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
 								 * */
