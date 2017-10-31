@@ -28,6 +28,7 @@ import apps.appIns;
 import apps.appsProxy;
 import database.db;
 import httpClient.request;
+import httpServer.grapeHttpUnit;
 import interfaceModel.GrapeDBSpecField;
 import interfaceModel.GrapeTreeDBModel;
 import interfaceType.apiType;
@@ -125,6 +126,10 @@ public class task {
 	public String stopService() {
 		appIns apps = appsProxy.getCurrentAppInfo();
 		if( ticktockThread.containsKey(apps.appid) ) {
+			ScheduledExecutorService serv = ticktockThread.get(apps.appid);
+			if( !serv.isTerminated()) {
+				serv.shutdown();
+			}
 			ticktockThread.remove(apps.appid);
 		}
 		return rMsg.netState(true);
@@ -194,7 +199,9 @@ public class task {
 							//---------------投递采集来 的数据
 							String collect = taskInfo.getString("collectApi");
 							if( StringHelper.InvaildString( collect ) ) {
-								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect + "/" + codec.encodeFastJSON( dataResult.toJSONString() ) ) );
+								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
+								execRequest.setChannelValue(grapeHttpUnit.formdata, postParam);
+								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect) );
 								/*
 								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
 								 * */
@@ -509,7 +516,7 @@ public class task {
 		}
 		JSONObject obj = new JSONObject("runstate",newState);
 		obj = db.eq(pkString, eid).data(obj).update();
-		return obj != null && obj.size() > 0;
+		return obj != null;
 	}
 	
 	private boolean taskState(String eid,int newState) {
@@ -518,7 +525,7 @@ public class task {
 		}
 		JSONObject obj = new JSONObject("state",newState);
 		obj = db.eq(pkString, eid).data(obj).update();
-		return obj != null && obj.size() > 0;
+		return obj != null;
 	}
 	
 	/**任务启用
