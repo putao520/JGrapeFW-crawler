@@ -389,7 +389,7 @@ public class task {
 						int stepLength = sel.getStepLength();
 						curPos = sel.getDirection() ? curPos - stepLength : curPos + stepLength;
 					}
-					jqObj = array.get(curPos);//获得目标元素 
+					jqObj = (array != null && array.size() > 0) ? array.get(curPos) : jqObj;//获得目标元素 
 				}
 				Element element = (Element)jqObj;//最后获得的肯定是Element
 				result.setUp(baseURL);
