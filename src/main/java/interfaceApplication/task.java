@@ -97,32 +97,57 @@ public class task {
 	private static HashMap<Integer, ScheduledExecutorService> ticktockThread = null;
 	private GrapeTreeDBModel db;
 	private String pkString;
+	private static final String lockerName = "crawlerTask_Query_Locker";
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
 	}
+	/**启动采集模块服务
+	 * @return
+	 */
 	public String startService(){
 		appIns apps = appsProxy.getCurrentAppInfo();
 		if( apps != null && !ticktockThread.containsKey(apps.appid) ) {
 			ScheduledExecutorService serv = Executors.newSingleThreadScheduledExecutor();;
-			serv.scheduleAtFixedRate(() -> {
-				//while(stateRun) {
+			distributedLocker servLocker = distributedLocker.newLocker(lockerName);
+			if( !servLocker.lock()  ) {//服务 本来没有锁
+				serv.scheduleAtFixedRate(() -> {
+					//while(stateRun) {
+					distributedLocker sLocker = new distributedLocker(lockerName);
+				
 					appsProxy.setCurrentAppInfo(apps);
 					ThreadEx.CurrentBlock_Sleep(1000);
-					distributedLocker crawlerLocker = new distributedLocker("crawlerTask_Locker");
+					distributedLocker crawlerLocker = new distributedLocker(lockerName);
 					if( crawlerLocker.lock() ) {
 						//需要复制环境 
 						appsProxy.proxyCall("/crawler/task/DelayBlock");
 						
 						crawlerLocker.releaseLocker();
 					}
-					//分块方式获得数据表数据，并执行过滤，最后生成结果值 
-				//}
-			}, 0, 1, TimeUnit.SECONDS);
-			ticktockThread.put(apps.appid, serv);
+						//分块方式获得数据表数据，并执行过滤，最后生成结果值 
+					//}
+					
+					if( !sLocker.isExisting() ) {
+						task t = new task();
+						t.stopService();
+					}
+						
+				}, 0, 1, TimeUnit.SECONDS);
+				ticktockThread.put(apps.appid, serv);
+			}
 		}
 		return rMsg.netState(true);
 	}
+	/**获得当前模块任务状态
+	 * @return
+	 */
+	public String queryService() {
+		distributedLocker sLocker = new distributedLocker(lockerName);
+		return rMsg.netState(sLocker.isExisting());
+	}
+	/**停止采集模块服务
+	 * @return
+	 */
 	public String stopService() {
 		appIns apps = appsProxy.getCurrentAppInfo();
 		if( ticktockThread.containsKey(apps.appid) ) {
@@ -132,6 +157,7 @@ public class task {
 			}
 			ticktockThread.remove(apps.appid);
 		}
+		(new distributedLocker(lockerName)).releaseLocker();
 		return rMsg.netState(true);
 	}
 	//遍历任务
@@ -199,8 +225,10 @@ public class task {
 							//---------------投递采集来 的数据
 							String collect = taskInfo.getString("collectApi");
 							if( StringHelper.InvaildString( collect ) ) {
+								
 								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
 								execRequest.setChannelValue(grapeHttpUnit.formdata, postParam);
+								
 								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect) );
 								/*
 								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
