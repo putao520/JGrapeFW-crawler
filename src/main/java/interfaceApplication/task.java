@@ -118,7 +118,7 @@ public class task {
 					distributedLocker crawlerLocker = new distributedLocker(lockerName);
 					if( crawlerLocker.lock() ) {
 						//需要复制环境 
-						appsProxy.proxyCall("/crawler/task/DelayBlock");
+						appsProxy.proxyCall("/crawler/task/DelayBlock",apps);
 						
 						crawlerLocker.releaseLocker();
 					}
