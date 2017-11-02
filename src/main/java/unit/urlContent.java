@@ -32,7 +32,7 @@ public class urlContent{
 	 * @return
 	 */
 	public final static String filterURL(String curhref,String url) {
-		if( curhref != null ) {
+		if( curhref != null && !url.toLowerCase().startsWith("http") ) {
 			String[] array = url.split("/");
 			URL currentURL;
 			try {
