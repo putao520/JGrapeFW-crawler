@@ -1,6 +1,8 @@
 package interfaceApplication;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,52 +42,13 @@ import security.codec;
 import string.StringHelper;
 import thread.ThreadEx;
 import time.TimeHelper;
+import unit.urlContent;
 
 /*
  * 
  * */
 
 public class task {
-	public class urlContent{
-		private String curhref;
-		private String curURL;
-		private String uplevelURL;
-		public urlContent(String href,String curURL,String upLevelURL) {
-			curhref = href;
-			this.curURL = StringHelper.fixString(curURL, '.') ;
-			this.uplevelURL = StringHelper.fixString(upLevelURL, '.');
-		}
-		public urlContent href(String href) {
-			this.curhref = href;
-			return this;
-		}
-		public String getCur() {
-			return curURL;
-		}
-		public String getUp() {
-			return uplevelURL;
-		}
-		private String filterURL(String url) {
-			if( curhref != null ) {
-				if( StringHelper.left(url, 1).equals(".") ) {//如果是点开头
-					curhref += " ";
-					String[] urls = curhref.split("/");
-					
-					urls[ urls.length - 1] =StringHelper.fixLeft(StringHelper.fixLeft(url, "."), "/");
-					url = StringHelper.join(urls, "/" ).trim();
-				}
-			}
-			return url;
-		}
-		public urlContent setCur(String url) {
-			curURL = filterURL(url);
-			return this;
-		}
-		public urlContent setUp(String url) {
-			uplevelURL = filterURL(url);
-			return this;
-		}
-	}
 	public enum state {
 	     enabled, disabled 
 	}
@@ -226,7 +189,6 @@ public class task {
 								
 								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
 								appIns apps = appsProxy.getCurrentAppInfo();
-								System.out.println("taskRun_Appid:" + apps.appid);
 								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
 								/*
 								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
@@ -282,18 +244,22 @@ public class task {
 		Object jqObj = doc;
 		Elements array = null;
 		Elements tempArray = null;
+		String selectStr;
+		boolean subMode = false;
 		for(crawlerSelector sel : sels) {
 			tempArray = new Elements();
-			/*
-			if( jqObj instanceof Document ) {
-				array = ((Document)jqObj).select(sel.Selector());
+			selectStr = sel.Selector();
+			
+			if( selectStr.startsWith("-") ) {//减号开头的字符串
+				subMode = true;
+				selectStr = StringHelper.fixLeft(selectStr, "-");
 			}
-			*/
+			
 			if( jqObj instanceof Elements ) {
-				array = ((Elements)jqObj).select(sel.Selector());
+				array = ((Elements)jqObj).select(selectStr);
 			}
 			if( jqObj instanceof Element ) {
-				array = ((Element)jqObj).select(sel.Selector());
+				array = ((Element)jqObj).select(selectStr);
 			}
 			int curPos = sel.CurrentIndex();
 			if( sel.hasDirection() ) {
@@ -303,7 +269,12 @@ public class task {
 			for(int i = curPos; i< curPos + sel.Length(); i++ ) {
 				tempArray.add( array.get(i) );
 			}
-			jqObj = tempArray;
+			if( subMode ) {//删除目标模式
+				tempArray.remove();
+			}
+			else {//目标选择模式
+				jqObj = tempArray;
+			}
 		}
 		Element node = ((Elements)jqObj).get(0);
 		return isTEXT ? node.text() : node.html();
@@ -397,7 +368,7 @@ public class task {
 				if( element.hasAttr("href") ) {//是否包含超链接
 					nextURL = element.attr("href");
 					if( StringHelper.InvaildString( nextURL ) ){
-						url = host + nextURL;
+						url = urlContent.filterURL(url, nextURL);
 					}
 					else {
 						throw new RuntimeException("输入的选择器href属性值不合法！ 选择器:" + url + "->" + selecters);
@@ -537,6 +508,7 @@ public class task {
 		return out;
 	}
 	//-----------------------------------------上面 是基础代码
+	/*
 	private boolean runState(String eid, int newState) {
 		if( !StringHelper.InvaildString(eid) ){
 			return false;
@@ -545,6 +517,7 @@ public class task {
 		obj = db.eq(pkString, eid).data(obj).update();
 		return obj != null;
 	}
+	*/
 	
 	private boolean taskState(String eid,int newState) {
 		if( !StringHelper.InvaildString(eid) ){
@@ -563,7 +536,7 @@ public class task {
 		if( !StringHelper.InvaildString(eid) ){
 			return rMsg.netMSG(false, "非法数据");
 		}
-		return rMsg.netState( runState(eid,1) );
+		return rMsg.netState( taskState(eid,1) );
 	}
 	/**任务关闭
 	 * @param eid
@@ -573,7 +546,7 @@ public class task {
 		if( !StringHelper.InvaildString(eid) ){
 			return rMsg.netMSG(false, "非法数据");
 		}
-		return rMsg.netState( runState(eid,0) );
+		return rMsg.netState( taskState(eid,0) );
 	}
 	
 	public String test(String str) {

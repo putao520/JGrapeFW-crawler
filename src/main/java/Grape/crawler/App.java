@@ -29,7 +29,8 @@ public class App
         
         //appsProxy.proxyCall("/crawler/task/DelayBlock");
         task _task = new task();
-        _task.startService();//为当前APP开启定时服务
+        //_task.startService();//为当前APP开启定时服务
+        _task.DelayBlock();
         
         /*
         //System.out.println( _task.test("putao520") );
