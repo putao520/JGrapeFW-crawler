@@ -261,17 +261,20 @@ public class task {
 			if( jqObj instanceof Element ) {
 				array = ((Element)jqObj).select(selectStr);
 			}
-			int curPos = sel.CurrentIndex();
-			if( sel.hasDirection() ) {
-				int stepLength = sel.getStepLength();
-				curPos = sel.getDirection() ? curPos - stepLength : curPos + stepLength;
-			}
 			int maxi = array.size() ;
-			for(int i = curPos; i< curPos + sel.Length(); i++ ) {
-				if( i >= maxi ) {
-					break;
+			if( maxi > 0 ) {
+				int curPos = sel.CurrentIndex();
+				if( sel.hasDirection() ) {
+					int stepLength = sel.getStepLength();
+					curPos = sel.getDirection() ? curPos - stepLength : curPos + stepLength;
 				}
-				tempArray.add( array.get(i) );
+
+				for(int i = curPos; i< curPos + sel.Length(); i++ ) {
+					if( i >= maxi ) {
+						break;
+					}
+					tempArray.add( array.get(i) );
+				}
 			}
 			if( subMode ) {//删除目标模式
 				tempArray.remove();
@@ -280,8 +283,11 @@ public class task {
 				jqObj = tempArray;
 			}
 		}
-		Element node = ((Elements)jqObj).get(0);
-		return isTEXT ? node.text() : node.html();
+		
+		Elements els =(Elements)jqObj;
+
+		Element node = els.size() > 0 ? els.get(0) : null;
+		return node != null ? (isTEXT ? node.text() : node.html()) : "";
 	}
 	
 	/**解析生成选择器对象
