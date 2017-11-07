@@ -42,7 +42,7 @@ public class urlContent{
 			try {
 				currentURL = new URL(curhref);
 				if( array[0].equals(".") ) {// ./asd.html的结构， host后紧跟URL
-					url = StringHelper.fixString(url2string( currentURL ) + currentURL.getPath()) + StringHelper.fixLeft(url, ".");
+					url = StringHelper.fixString(url2string( currentURL ) + currentURL.getPath(),"/") + StringHelper.fixLeft(url, ".");
 				}
 				else if( array[0].equals("..") ) {// ../../../asd.html无限向上关系
 					int i = 0;
