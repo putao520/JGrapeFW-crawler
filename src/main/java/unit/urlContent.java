@@ -3,6 +3,7 @@ package unit;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import interfaceApplication.task.state;
 import nlogger.nlogger;
 import string.StringHelper;
 
@@ -26,6 +27,9 @@ public class urlContent{
 	public String getUp() {
 		return uplevelURL;
 	}
+	public final static String url2string(URL currentURL) {
+		return currentURL.getProtocol() + "://" + currentURL.getHost() + (currentURL.getPort() > 0 ? ":" + currentURL.getPort() : "");
+	}
 	/**根据当前浏览器URL和目标URL转换成正确的URL
 	 * @param curhref
 	 * @param url
@@ -38,7 +42,7 @@ public class urlContent{
 			try {
 				currentURL = new URL(curhref);
 				if( array[0].equals(".") ) {// ./asd.html的结构， host后紧跟URL
-					url = currentURL.getProtocol() + "://" + currentURL.getHost() + StringHelper.fixLeft(url, ".");
+					url = StringHelper.fixString(url2string( currentURL ) + currentURL.getPath()) + StringHelper.fixLeft(url, ".");
 				}
 				else if( array[0].equals("..") ) {// ../../../asd.html无限向上关系
 					int i = 0;
@@ -53,14 +57,17 @@ public class urlContent{
 					
 					if( i <= paths.length ) {
 						String newpath = StringHelper.join(paths, "/", 0, paths.length - i );
-						url = currentURL.getProtocol() + "://" + currentURL.getHost() + "/" + (newpath.equals("") ? "" : "/") + StringHelper.join(array, "/", i-1,-1);
+						if( newpath.length() > 0 ) {
+							newpath += "/";
+						}
+						url = url2string( currentURL ) + "/" + newpath + StringHelper.join(array, "/", i-1,-1);
 					}
 					else {
 						nlogger.logout("curhref:" + curhref + " url:" + url + "向上层级异常");
 					}
 				}
 				else {
-					url = currentURL.getProtocol() + "://" + currentURL.getHost() + url;
+					url = url2string( currentURL ) + url;
 				}
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block

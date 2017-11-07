@@ -1,5 +1,8 @@
 package Grape.crawler;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -10,6 +13,7 @@ import apps.appsProxy;
 import interfaceApplication.task;
 import security.codec;
 import time.TimeHelper;
+import unit.urlContent;
 
 /**
  * Hello world!
@@ -19,8 +23,9 @@ public class App
 {
     @SuppressWarnings("unchecked")
 	public static void main( String[] args )
-    {
-    	
+    {	    	
+	    //System.out.println( urlContent.filterURL("http://www.putao282.com/putao520/111/222/333", "../../../putao282.html") );
+
         System.out.println( "Hello World!" );
         JSONObject json = new JSONObject();
         json.put("configName","{\"cache\":\"redis\",\"other\":[],\"db\":\"mongodb\"}");
