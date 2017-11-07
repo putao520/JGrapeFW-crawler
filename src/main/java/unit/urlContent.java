@@ -3,6 +3,8 @@ package unit;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.sun.star.beans.StringPair;
+
 import interfaceApplication.task.state;
 import nlogger.nlogger;
 import string.StringHelper;
@@ -42,7 +44,10 @@ public class urlContent{
 			try {
 				currentURL = new URL(curhref);
 				if( array[0].equals(".") ) {// ./asd.html的结构， host后紧跟URL
-					url = StringHelper.fixString(url2string( currentURL ) + currentURL.getPath(),"/") + StringHelper.fixLeft(url, ".");
+					String[] paths = currentURL.getPath().split("/");
+					String newpath = StringHelper.join( paths , "/", 0 , paths.length - 1);
+
+					url = StringHelper.fixString(url2string( currentURL ) + newpath,"/") + StringHelper.fixLeft(url, ".");
 				}
 				else if( array[0].equals("..") ) {// ../../../asd.html无限向上关系
 					int i = 0;
