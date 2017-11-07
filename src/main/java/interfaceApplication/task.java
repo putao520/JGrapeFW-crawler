@@ -266,7 +266,11 @@ public class task {
 				int stepLength = sel.getStepLength();
 				curPos = sel.getDirection() ? curPos - stepLength : curPos + stepLength;
 			}
+			int maxi = array.size() ;
 			for(int i = curPos; i< curPos + sel.Length(); i++ ) {
+				if( i >= maxi ) {
+					break;
+				}
 				tempArray.add( array.get(i) );
 			}
 			if( subMode ) {//删除目标模式
