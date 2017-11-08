@@ -420,7 +420,10 @@ public class task {
 		JSONObject jsonObj = JSONObject.toJSON( codec.DecodeFastJSON( json ));
 		if( jsonObj != null ){
 			jsonObj.put("time", TimeHelper.nowMillis() );
+			jsonObj.put("neartime", 0);
+			jsonObj.put("runtime", 0);
 			ob = db.data( jsonObj ).autoComplete().insertOnce();
+			
 		}
 		return rMsg.netMSG(ob != null, (String)ob);
 	}

@@ -26,7 +26,7 @@ public class App
     {	    	
 
     	
-	    System.out.println( urlContent.filterURL("http://syj.tl.gov.cn/2205/2212/sjcjxx/201710/t20171025_398986.html", "./t20171018_398376.html") );
+	    //System.out.println( urlContent.filterURL("http://syj.tl.gov.cn/2205/2212/sjcjxx", "./201710/t20171025_398986.html") );
 
         System.out.println( "Hello World!" );
         JSONObject json = new JSONObject();
