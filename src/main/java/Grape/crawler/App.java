@@ -24,7 +24,9 @@ public class App
     @SuppressWarnings("unchecked")
 	public static void main( String[] args )
     {	    	
-	    System.out.println( urlContent.filterURL("http://www.putao282.com/putao520/111/222/333/putao520.html", "./putao282.html") );
+
+    	
+	    System.out.println( urlContent.filterURL("http://syj.tl.gov.cn/2205/2212/sjcjxx/201710/t20171025_398986.html", "./t20171018_398376.html") );
 
         System.out.println( "Hello World!" );
         JSONObject json = new JSONObject();

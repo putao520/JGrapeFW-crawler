@@ -40,11 +40,13 @@ public class urlContent{
 	public final static String filterURL(String curhref,String url) {
 		if( curhref != null && !url.toLowerCase().startsWith("http") ) {
 			String[] array = url.split("/");
+			curhref += "xxx";
 			URL currentURL;
 			try {
 				currentURL = new URL(curhref);
+				String _paths = currentURL.getPath();
 				if( array[0].equals(".") ) {// ./asd.html的结构， host后紧跟URL
-					String[] paths = currentURL.getPath().split("/");
+					String[] paths = _paths.split("/");
 					String newpath = StringHelper.join( paths , "/", 0 , paths.length - 1);
 
 					url = StringHelper.fixString(url2string( currentURL ) + newpath,"/") + StringHelper.fixLeft(url, ".");
@@ -58,7 +60,7 @@ public class urlContent{
 					}
 					i++;
 					//i = 多少个..向上的层级
-					String[] paths = StringHelper.fixLeft(currentURL.getPath(), "/").split("/");
+					String[] paths = StringHelper.fixLeft(_paths, "/").split("/");
 					
 					if( i <= paths.length ) {
 						String newpath = StringHelper.join(paths, "/", 0, paths.length - i );
