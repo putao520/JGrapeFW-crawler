@@ -129,8 +129,6 @@ public class task {
 			JSONObject json;
 			for(Object obj : array) {
 				json = (JSONObject)obj;
-				System.out.println(json.toString());
-				System.out.println(json.getLong("state"));
 				if( json.getLong("state") == 1 ) {
 					if( (json.getLong("neartime") + json.getLong("runtime") <= TimeHelper.nowMillis()) && json.getLong("runstate") == 0 ) {
 						_array.add(obj);
@@ -147,6 +145,7 @@ public class task {
 		db.data(new JSONObject("runstate",1)).update();//更新任务状态运行中
 		for(Object obj : taskList) {
 			json = (JSONObject)obj;
+			//long startTime = TimeHelper.nowMillis();
 			long taskrl = ( !taskRun(json) ) ? 2 : 0;
 			db.eq(pkString, json.getString("_id")).data( (new JSONObject("runstate",taskrl)).puts("neartime", TimeHelper.nowMillis() ) ).update();//更新任务状态为执行结果
 		}
