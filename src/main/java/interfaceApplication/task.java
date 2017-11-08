@@ -129,6 +129,8 @@ public class task {
 			JSONObject json;
 			for(Object obj : array) {
 				json = (JSONObject)obj;
+				System.out.println(json.toString());
+				System.out.println(json.getLong("state"));
 				if( json.getLong("state") == 1 ) {
 					if( (json.getLong("neartime") + json.getLong("runtime") <= TimeHelper.nowMillis()) && json.getLong("runstate") == 0 ) {
 						_array.add(obj);
@@ -163,72 +165,74 @@ public class task {
 		if( taskInfo != null ) {
 			String host = taskInfo.getString("host");
 			JSONObject initJson = taskInfo.getJson("init");
-			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );; 
-			String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
-			
-			while( contentURL != null ) {
-				try {
-					//----------------确定循环数据
-					JSONObject loopJson = taskInfo.getJson("loop");
-					int loopMode = loopJson.getInt("mode");
-					String loopURL = null;
-					do {
-						//---------------开始采集内容
-						if( contentURL != null ) {
-							Document doc = Jsoup.connect(contentURL).get();
-							JSONArray dataBlock = taskInfo.getJsonArray("data");
-							JSONObject block;
-							JSONObject dataResult = new JSONObject();
-							for(Object obj : dataBlock) {
-								block = (JSONObject)obj;
-								dataResult.put( block.getString("key") , dataSelecter(doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
-							}
-							//---------------投递采集来 的数据
-							String collect = taskInfo.getString("collectApi");
-							if( StringHelper.InvaildString( collect ) ) {
-								
-								JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
-								appIns apps = appsProxy.getCurrentAppInfo();
-								JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
-								/*
-								 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
-								 * */
-								if( rjson != null && rjson.containsKey("errorcode") ) {
-									if( rjson.getInt("errorcode") != 0 ) {
-										System.out.println("crawler system breaking by remoteSystem!");
-										contentURL = null;
-										break;
-									}
+			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );
+			if( contentUrlObj != null ) {
+				String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
+				
+				while( contentURL != null ) {
+					try {
+						//----------------确定循环数据
+						JSONObject loopJson = taskInfo.getJson("loop");
+						int loopMode = loopJson.getInt("mode");
+						String loopURL = null;
+						do {
+							//---------------开始采集内容
+							if( contentURL != null ) {
+								Document doc = Jsoup.connect(contentURL).get();
+								JSONArray dataBlock = taskInfo.getJsonArray("data");
+								JSONObject block;
+								JSONObject dataResult = new JSONObject();
+								for(Object obj : dataBlock) {
+									block = (JSONObject)obj;
+									dataResult.put( block.getString("key") , dataSelecter(doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
 								}
-								rb = true;
+								//---------------投递采集来 的数据
+								String collect = taskInfo.getString("collectApi");
+								if( StringHelper.InvaildString( collect ) ) {
+									
+									JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
+									appIns apps = appsProxy.getCurrentAppInfo();
+									JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
+									/*
+									 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
+									 * */
+									if( rjson != null && rjson.containsKey("errorcode") ) {
+										if( rjson.getInt("errorcode") != 0 ) {
+											System.out.println("crawler system breaking by remoteSystem!");
+											contentURL = null;
+											break;
+										}
+									}
+									rb = true;
+								}
+								else {
+									nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
+								}
 							}
-							else {
-								nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
+							urlContent nextUrlObj;
+							switch(numberHelper.number2int(loopMode) ) {
+							case 1://通过起始页获得
+								nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
+								loopURL = contentURL;
+								break;
+							case 2://通过内容页获得
+								nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
+								loopURL = nextUrlObj != null ? nextUrlObj.getCur() : null;
+								break;
+							default:
+								loopURL = null;
+								break;
 							}
-						}
-						urlContent nextUrlObj;
-						switch(numberHelper.number2int(loopMode) ) {
-						case 1://通过起始页获得
-							nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
-							loopURL = contentURL;
-							break;
-						case 2://通过内容页获得
-							nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
-							loopURL = nextUrlObj.getCur();
-							break;
-						default:
-							loopURL = null;
-							break;
-						}
-						contentURL = loopURL;
-					}while( contentURL != null);
-					//-------------------------
-				} catch (IOException e) {
-					nlogger.logout("url" + contentURL + "  ->异常");
-					nlogger.logout(e);
-					contentURL = null;
-					e.printStackTrace();
-					rb = false;
+							contentURL = loopURL;
+						}while( contentURL != null);
+						//-------------------------
+					} catch (IOException e) {
+						nlogger.login(e,"url" + contentURL + "  ->异常");
+						//nlogger.logout(e);
+						contentURL = null;
+						e.printStackTrace();
+						rb = false;
+					}
 				}
 			}
 		}
@@ -379,15 +383,18 @@ public class task {
 					nextURL = element.attr("href");
 					if( StringHelper.InvaildString( nextURL ) ){
 						url = urlContent.filterURL(url, nextURL);
+						result.setCur(nextURL);
 					}
 					else {
-						throw new RuntimeException("输入的选择器href属性值不合法！ 选择器:" + url + "->" + selecters);
+						result = null;
+						nlogger.login("输入的选择器href属性值不合法！ 选择器:" + url + "->" + selecters);
+						
 					}
 				}
 				else {
-					throw new RuntimeException("输入的选择器不包含href属性！ 选择器:" + url + "->" + selecters);
+					result = null;
+					nlogger.login("输入的选择器不包含href属性！ 选择器:" + url + "->" + selecters);
 				}
-				result.setCur(nextURL);
 			}
 
 			
