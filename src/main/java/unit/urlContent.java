@@ -74,6 +74,9 @@ public class urlContent{
 					}
 				}
 				else {
+					if( !url.startsWith("/") ) {
+						url = "/" + url;
+					}
 					url = url2string( currentURL ) + url;
 				}
 			} catch (MalformedURLException e) {

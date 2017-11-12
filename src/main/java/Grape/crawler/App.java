@@ -10,6 +10,7 @@ import com.sun.star.configuration.theDefaultProvider;
 
 import apps.appIns;
 import apps.appsProxy;
+import httpClient.request;
 import interfaceApplication.task;
 import security.codec;
 import time.TimeHelper;
@@ -24,7 +25,9 @@ public class App
     @SuppressWarnings("unchecked")
 	public static void main( String[] args )
     {	    	
-
+    	
+    	System.out.println(request.Get("http://www.ahgzw.gov.cn/gzwweb/list.jsp?strWebSiteId=1448865560847002&strColId=1448867943579006&_index=1"));
+    	
     	
 	    //System.out.println( urlContent.filterURL("http://syj.tl.gov.cn/2205/2212/sjcjxx", "./201710/t20171025_398986.html") );
 
