@@ -61,6 +61,7 @@ public class task {
 	private GrapeTreeDBModel db;
 	private String pkString;
 	private static final String lockerName = "crawlerTask_Query_Locker";
+	private static final String RunnerlockerName = "crawlerTask_Running_Locker";
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
@@ -73,26 +74,18 @@ public class task {
 		if( apps != null && !ticktockThread.containsKey(apps.appid) ) {
 			ScheduledExecutorService serv = Executors.newSingleThreadScheduledExecutor();;
 			distributedLocker servLocker = distributedLocker.newLocker(lockerName);
-			if( !servLocker.lock()  ) {//服务 本来没有锁
+			if( servLocker.lock() ) {//判断是否锁定成功
 				serv.scheduleAtFixedRate(() -> {
 					//while(stateRun) {
 					distributedLocker sLocker = new distributedLocker(lockerName);
-		
-					distributedLocker crawlerLocker = new distributedLocker(lockerName);
-					if( crawlerLocker.lock() ) {
-						//需要复制环境 
-						appsProxy.proxyCall("/crawler/task/DelayBlock",apps);
-						
-						crawlerLocker.releaseLocker();
-					}
-						//分块方式获得数据表数据，并执行过滤，最后生成结果值 
-					//}
-					
-					if( !sLocker.isExisting() ) {
+					if( !sLocker.isExisting() ) {//锁不存在了，退出服务
 						task t = new task();
 						t.stopService();
 					}
-						
+					
+					appsProxy.proxyCall("/crawler/task/DelayBlock",apps);
+						//分块方式获得数据表数据，并执行过滤，最后生成结果值 
+					//}
 				}, 0, 1, TimeUnit.SECONDS);
 				ticktockThread.put(apps.appid, serv);
 			}
