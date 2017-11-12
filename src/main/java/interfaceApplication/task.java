@@ -78,6 +78,7 @@ public class task {
 				
 				serv.scheduleAtFixedRate(() -> {
 					//while(stateRun) {
+					appsProxy.setCurrentAppInfo(apps);
 					distributedLocker sLocker = new distributedLocker(lockerName);
 					if( !sLocker.isExisting() ) {//锁不存在了，退出服务
 						task t = new task();
