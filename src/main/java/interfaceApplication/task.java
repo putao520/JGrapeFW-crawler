@@ -61,7 +61,7 @@ public class task {
 	private GrapeTreeDBModel db;
 	private String pkString;
 	private static final String lockerName = "crawlerTask_Query_Locker";
-	private static final String RunnerlockerName = "crawlerTask_Running_Locker";
+	//private static final String RunnerlockerName = "crawlerTask_Running_Locker";
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
@@ -75,6 +75,7 @@ public class task {
 			ScheduledExecutorService serv = Executors.newSingleThreadScheduledExecutor();;
 			distributedLocker servLocker = distributedLocker.newLocker(lockerName);
 			if( servLocker.lock() ) {//判断是否锁定成功
+				
 				serv.scheduleAtFixedRate(() -> {
 					//while(stateRun) {
 					distributedLocker sLocker = new distributedLocker(lockerName);
