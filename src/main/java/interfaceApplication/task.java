@@ -88,7 +88,7 @@ public class task {
 					appsProxy.proxyCall("/crawler/task/DelayBlock",apps);
 						//分块方式获得数据表数据，并执行过滤，最后生成结果值 
 					//}
-				}, 0, 1, TimeUnit.SECONDS);
+				}, 0, 1, TimeUnit.HOURS);
 				ticktockThread.put(apps.appid, serv);
 			}
 		}
@@ -233,6 +233,16 @@ public class task {
 		return rb;
 	}
 	
+	private String safeHTML(Element node) {
+		Elements script = node.select("script");
+		if( script.size() > 0) {
+			script.remove();
+		}
+		Elements a = node.select("a");
+		a.attr("href", "javascript:;");
+		return node.html();
+	}
+	
 	/**选择器的值
 	 * @param doc
 	 * @param sel
@@ -285,7 +295,7 @@ public class task {
 		Elements els =(Elements)jqObj;
 
 		Element node = els.size() > 0 ? els.get(0) : null;
-		return node != null ? (isTEXT ? node.text() : node.html()) : "";
+		return node != null ? (isTEXT ? node.text() : safeHTML(node)) : "";
 	}
 	
 	/**解析生成选择器对象
