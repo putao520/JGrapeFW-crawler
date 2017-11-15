@@ -185,7 +185,7 @@ public class task {
 						do {
 							//---------------开始采集内容
 							if( contentURL != null ) {
-								Document doc = Jsoup.parse(request.page(contentURL)) ;
+								Document doc = Jsoup.parse(request.page(contentURL),contentURL) ;
 								JSONArray dataBlock = taskInfo.getJsonArray("data");
 								JSONObject block;
 								JSONObject dataResult = new JSONObject();
@@ -317,7 +317,7 @@ public class task {
 					curhref = url;
 					currentURL = curhref;
 					try {
-						jqObj =Jsoup.parse(request.page(curhref)) ;
+						jqObj =Jsoup.parse(request.page(curhref),curhref) ;
 					} catch (Exception e) {
 						jqObj = null;
 						break;
@@ -396,7 +396,7 @@ public class task {
 			Document doc = null;
 			Elements array = null;
 			int l = sels.length;
-			doc = Jsoup.parse( request.page(url) );
+			doc = Jsoup.parse( request.page(url),url );
 			Object jqObj = doc;
 			for(int i =0; i < l; i++ ) {
 				List<crawlerSelector> csl = getSelecter(sels[i]); 
