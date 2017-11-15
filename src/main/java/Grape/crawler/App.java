@@ -26,21 +26,21 @@ public class App
 	public static void main( String[] args )
     {	    	
     	
-    	System.out.println(request.Get("http://www.ahgzw.gov.cn/gzwweb/list.jsp?strWebSiteId=1448865560847002&strColId=1448867943579006&_index=1"));
+    	//System.out.println(request.Get("http://www.ahgzw.gov.cn/gzwweb/list.jsp?strWebSiteId=1448865560847002&strColId=1448867943579006&_index=1"));
     	
-    	
+    	//System.out.println( urlContent.filterURL("http://www.baidu.com/a/b/", "index.html") );
 	    //System.out.println( urlContent.filterURL("http://syj.tl.gov.cn/2205/2212/sjcjxx", "./201710/t20171025_398986.html") );
 
-        System.out.println( "Hello World!" );
-        JSONObject json = new JSONObject();
-        json.put("configName","{\"cache\":\"redis\",\"other\":[],\"db\":\"mongodb\"}");
-        json.put("tableConfig", "{\"crawlerTask\":{\"tableName\":\"crawlerTask\",\"rule\":[{\"fieldName\":\"name\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"desc\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"info\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"state\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"runtime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":27},{\"fieldName\":\"neartime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"runstate\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"time\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":27}]}}");
-        appsProxy.testConfigValue(17, "crawler", json );
-        
-        //appsProxy.proxyCall("/crawler/task/DelayBlock");
-        task _task = new task();
-        //_task.startService();//为当前APP开启定时服务
-        _task.DelayBlock();
+//        System.out.println( "Hello World!" );
+//        JSONObject json = new JSONObject();
+//        json.put("configName","{\"cache\":\"redis\",\"other\":[],\"db\":\"mongodb\"}");
+//        json.put("tableConfig", "{\"crawlerTask\":{\"tableName\":\"crawlerTask\",\"rule\":[{\"fieldName\":\"name\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"desc\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"info\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"state\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"runtime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":27},{\"fieldName\":\"neartime\",\"fieldType\":0,\"initValue\":\"\",\"failedValue\":\"\",\"checkType\":1},{\"fieldName\":\"runstate\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":6},{\"fieldName\":\"time\",\"fieldType\":0,\"initValue\":0,\"failedValue\":0,\"checkType\":27}]}}");
+//        appsProxy.testConfigValue(17, "crawler", json );
+//        
+//        //appsProxy.proxyCall("/crawler/task/DelayBlock");
+//        task _task = new task();
+//        //_task.startService();//为当前APP开启定时服务
+//        _task.DelayBlock();
         
         /*
         //System.out.println( _task.test("putao520") );

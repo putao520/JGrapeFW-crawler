@@ -74,10 +74,16 @@ public class urlContent{
 					}
 				}
 				else {
-					if( !url.startsWith("/") ) {
-						url = "/" + url;
+					if( url.startsWith("/") ) {
+						url = url2string( currentURL ) + url;
 					}
-					url = url2string( currentURL ) + url;
+					else {
+						String[] paths = _paths.split("/");
+						String newpath = StringHelper.join( paths , "/", 0 , paths.length - 1);
+
+						url = StringHelper.fixString(url2string( currentURL ) + newpath,"/") + "/" + StringHelper.fixLeft(url, ".");
+					
+					}
 				}
 			} catch (MalformedURLException e) {
 				// TODO Auto-generated catch block
