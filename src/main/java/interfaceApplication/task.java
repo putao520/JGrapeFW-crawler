@@ -428,7 +428,7 @@ public class task {
 				result.setUp(baseURL);
 				String nextURL = "";
 				if( element.hasAttr("href") ) {//是否包含超链接
-					nextURL = element.absUrl("href");
+					nextURL = element.attr("href");
 					if( StringHelper.InvaildString( nextURL ) ){
 						url = urlContent.filterURL(url, nextURL);
 						result.setCur(nextURL);
