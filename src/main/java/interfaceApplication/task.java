@@ -392,7 +392,7 @@ public class task {
 	private urlContent getURL(String host,String baseURL, String selecters){
 		String url = host + baseURL;
 		urlContent result = new urlContent(url,baseURL,baseURL);
-		if( selecters == null ) {
+		if( StringHelper.InvaildString(selecters) ) {
 			return result;
 		}
 		String[] sels = selecters.split(",");
