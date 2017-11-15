@@ -171,7 +171,8 @@ public class task {
 		if( taskInfo != null ) {
 			String host = taskInfo.getString("host");
 			JSONObject initJson = taskInfo.getJson("init");
-			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );
+			String initSel = initJson.getString("selecter");
+			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initSel );
 			if( contentUrlObj != null ) {
 				String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
 				
@@ -389,9 +390,12 @@ public class task {
 	 * @return
 	 */
 	private urlContent getURL(String host,String baseURL, String selecters){
-		String[] sels = selecters.split(",");
 		String url = host + baseURL;
 		urlContent result = new urlContent(url,baseURL,baseURL);
+		if( selecters == null ) {
+			return result;
+		}
+		String[] sels = selecters.split(",");
 		try {
 			Document doc = null;
 			Elements array = null;
