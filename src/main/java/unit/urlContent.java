@@ -37,7 +37,6 @@ public class urlContent{
 	 * @param url
 	 * @return
 	 */
-	/*
 	public final static String filterURL(String curhref,String url) {
 		if( curhref != null && !url.toLowerCase().startsWith("http") ) {
 			String[] array = url.split("/");
@@ -84,17 +83,24 @@ public class urlContent{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
+			/*
+			if( StringHelper.left(url, 1).equals(".") ) {//如果是点开头
+				curhref += " ";
+				String[] urls = curhref.split("/");
+				
+				urls[ urls.length - 1] =StringHelper.fixLeft(StringHelper.fixLeft(url, "."), "/");
+				url = StringHelper.join(urls, "/" ).trim();
+			}
+			*/
 		}
 		return url;
 	}
-	*/
 	public urlContent setCur(String url) {
-		curURL = url;
+		curURL = filterURL(curhref,url);
 		return this;
 	}
 	public urlContent setUp(String url) {
-		uplevelURL = url;
+		uplevelURL = filterURL(curhref,url);
 		return this;
 	}
 }

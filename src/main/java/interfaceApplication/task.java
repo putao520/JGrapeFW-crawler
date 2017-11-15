@@ -171,8 +171,7 @@ public class task {
 		if( taskInfo != null ) {
 			String host = taskInfo.getString("host");
 			JSONObject initJson = taskInfo.getJson("init");
-			String initSel = initJson.getString("selecter");
-			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initSel );
+			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );
 			if( contentUrlObj != null ) {
 				String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
 				
@@ -186,7 +185,7 @@ public class task {
 						do {
 							//---------------开始采集内容
 							if( contentURL != null ) {
-								Document doc = Jsoup.parse(request.page(contentURL),contentURL) ;
+								Document doc = Jsoup.parse(request.page(contentURL)) ;
 								JSONArray dataBlock = taskInfo.getJsonArray("data");
 								JSONObject block;
 								JSONObject dataResult = new JSONObject();
@@ -314,11 +313,11 @@ public class task {
 			if( netMode ) {//网络目标模式
 				Element ele = tempArray.get(0);//获得第一个元素
 				if( ele.hasAttr("href") ) {
-					String url =  ele.absUrl("href");
+					String url = urlContent.filterURL(curhref, ele.attr("href")  );
 					curhref = url;
 					currentURL = curhref;
 					try {
-						jqObj =Jsoup.parse(request.page(curhref),curhref) ;
+						jqObj =Jsoup.parse(request.page(curhref)) ;
 					} catch (Exception e) {
 						jqObj = null;
 						break;
@@ -390,17 +389,18 @@ public class task {
 	 * @return
 	 */
 	private urlContent getURL(String host,String baseURL, String selecters){
+		String[] sels = selecters.split(",");
 		String url = host + baseURL;
 		urlContent result = new urlContent(url,baseURL,baseURL);
-		if( StringHelper.InvaildString(selecters) && !selecters.equals("") ) {
+		if( selecters == null || selecters.equals("") ) {
 			return result;
 		}
-		String[] sels = selecters.split(",");
+		
 		try {
 			Document doc = null;
 			Elements array = null;
 			int l = sels.length;
-			doc = Jsoup.parse( request.page(url),url );
+			doc = Jsoup.parse( request.page(url) );
 			Object jqObj = doc;
 			for(int i =0; i < l; i++ ) {
 				List<crawlerSelector> csl = getSelecter(sels[i]); 
@@ -427,7 +427,7 @@ public class task {
 				if( element.hasAttr("href") ) {//是否包含超链接
 					nextURL = element.absUrl("href");
 					if( StringHelper.InvaildString( nextURL ) ){
-						url = nextURL;
+						url = urlContent.filterURL(url, nextURL);
 						result.setCur(nextURL);
 					}
 					else {
