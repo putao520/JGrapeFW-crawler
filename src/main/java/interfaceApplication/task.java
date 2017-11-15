@@ -61,6 +61,8 @@ public class task {
 	private GrapeTreeDBModel db;
 	private String pkString;
 	private static final String lockerName = "crawlerTask_Query_Locker";
+	
+	private String currentURL = "";
 	//private static final String RunnerlockerName = "crawlerTask_Running_Locker";
 	static {
 		stateRun = true;
@@ -165,6 +167,7 @@ public class task {
 				
 				while( contentURL != null ) {
 					try {
+						currentURL = contentURL;
 						//----------------确定循环数据
 						JSONObject loopJson = taskInfo.getJson("loop");
 						int loopMode = loopJson.getInt("mode");
@@ -178,7 +181,8 @@ public class task {
 								JSONObject dataResult = new JSONObject();
 								for(Object obj : dataBlock) {
 									block = (JSONObject)obj;
-									dataResult.put( block.getString("key") , dataSelecter(host,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
+									dataResult.put( block.getString("key") , dataSelecter( contentURL,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
+									
 								}
 								//---------------投递采集来 的数据
 								String collect = taskInfo.getString("collectApi");
@@ -248,8 +252,9 @@ public class task {
 	 * @param sel
 	 * @return
 	 */
-	private String dataSelecter(String curhref,Document doc , List<crawlerSelector> sels,boolean isTEXT){
+	private Object dataSelecter(String curhref,Document doc , List<crawlerSelector> sels,boolean isTEXT){
 		Object jqObj = doc;
+		String _hString = null;
 		Elements array = null;
 		Elements tempArray = null;
 		String selectStr;
@@ -300,6 +305,9 @@ public class task {
 				Element ele = tempArray.get(0);//获得第一个元素
 				if( ele.hasAttr("href") ) {
 					String url = urlContent.filterURL(curhref, ele.attr("href")  );
+					curhref = url;
+					currentURL = curhref;
+					_hString= url;
 					try {
 						jqObj =Jsoup.connect(url).get();
 					} catch (IOException e) {
@@ -313,7 +321,10 @@ public class task {
 		Elements els =(Elements)jqObj;
 
 		Element node = els != null && els.size() > 0 ? els.get(0) : null;
-		return node != null ? (isTEXT ? node.text() : safeHTML(node)) : "";
+		String rString = node != null ? (isTEXT ? node.text() : safeHTML(node)) : "";
+		Object ro;
+		ro = (new JSONObject("url",currentURL)).puts("content", rString);
+		return ro;
 	}
 	
 	/**解析生成选择器对象
