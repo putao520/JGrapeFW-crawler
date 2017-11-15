@@ -313,7 +313,7 @@ public class task {
 			if( netMode ) {//网络目标模式
 				Element ele = tempArray.get(0);//获得第一个元素
 				if( ele.hasAttr("href") ) {
-					String url = urlContent.filterURL(curhref, ele.attr("href")  );
+					String url =  ele.absUrl("href");
 					curhref = url;
 					currentURL = curhref;
 					try {
@@ -421,9 +421,9 @@ public class task {
 				result.setUp(baseURL);
 				String nextURL = "";
 				if( element.hasAttr("href") ) {//是否包含超链接
-					nextURL = element.attr("href");
+					nextURL = element.absUrl("href");
 					if( StringHelper.InvaildString( nextURL ) ){
-						url = urlContent.filterURL(url, nextURL);
+						url = nextURL;
 						result.setCur(nextURL);
 					}
 					else {
