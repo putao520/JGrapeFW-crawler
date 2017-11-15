@@ -178,7 +178,7 @@ public class task {
 								JSONObject dataResult = new JSONObject();
 								for(Object obj : dataBlock) {
 									block = (JSONObject)obj;
-									dataResult.put( block.getString("key") , dataSelecter(doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
+									dataResult.put( block.getString("key") , dataSelecter(host,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
 								}
 								//---------------投递采集来 的数据
 								String collect = taskInfo.getString("collectApi");
@@ -248,12 +248,13 @@ public class task {
 	 * @param sel
 	 * @return
 	 */
-	private String dataSelecter(Document doc , List<crawlerSelector> sels,boolean isTEXT){
+	private String dataSelecter(String curhref,Document doc , List<crawlerSelector> sels,boolean isTEXT){
 		Object jqObj = doc;
 		Elements array = null;
 		Elements tempArray = null;
 		String selectStr;
 		boolean subMode = false;
+		boolean netMode = false;
 		for(crawlerSelector sel : sels) {
 			tempArray = new Elements();
 			selectStr = sel.Selector();
@@ -261,6 +262,11 @@ public class task {
 			if( selectStr.startsWith("-") ) {//减号开头的字符串
 				subMode = true;
 				selectStr = StringHelper.fixLeft(selectStr, "-");
+			}
+			
+			if( selectStr.startsWith("^") ) {//^开头的字符串
+				netMode = true;
+				selectStr = StringHelper.fixLeft(selectStr, "^");
 			}
 			
 			if( jqObj instanceof Elements ) {
@@ -290,11 +296,23 @@ public class task {
 			else {//目标选择模式
 				jqObj = tempArray;
 			}
+			if( netMode ) {//网络目标模式
+				Element ele = tempArray.get(0);//获得第一个元素
+				if( ele.hasAttr("href") ) {
+					String url = urlContent.filterURL(curhref, ele.attr("href")  );
+					try {
+						jqObj =Jsoup.connect(url).get();
+					} catch (IOException e) {
+						jqObj = null;
+						break;
+					}
+				}
+			}
 		}
 		
 		Elements els =(Elements)jqObj;
 
-		Element node = els.size() > 0 ? els.get(0) : null;
+		Element node = els != null && els.size() > 0 ? els.get(0) : null;
 		return node != null ? (isTEXT ? node.text() : safeHTML(node)) : "";
 	}
 	
