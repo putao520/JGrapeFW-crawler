@@ -175,7 +175,7 @@ public class task {
 						do {
 							//---------------开始采集内容
 							if( contentURL != null ) {
-								Document doc = Jsoup.connect(contentURL).get();
+								Document doc = Jsoup.parse(request.page(contentURL)) ;
 								JSONArray dataBlock = taskInfo.getJsonArray("data");
 								JSONObject block;
 								JSONObject dataResult = new JSONObject();
@@ -224,7 +224,7 @@ public class task {
 							contentURL = loopURL;
 						}while( contentURL != null);
 						//-------------------------
-					} catch (IOException e) {
+					} catch (Exception e) {
 						nlogger.login(e,"url" + contentURL + "  ->异常");
 						//nlogger.logout(e);
 						contentURL = null;
@@ -307,8 +307,8 @@ public class task {
 					curhref = url;
 					currentURL = curhref;
 					try {
-						jqObj =Jsoup.connect(url).get();
-					} catch (IOException e) {
+						jqObj =Jsoup.parse(request.page(curhref)) ;
+					} catch (Exception e) {
 						jqObj = null;
 						break;
 					}
