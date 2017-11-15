@@ -351,7 +351,7 @@ public class task {
 			startIdx = 0;
 			length = 1;
 			stepLength = 1;
-			String[] groupA = grape0[i].split(":");//
+			String[] groupA = grape0[i].split("&");//
 			if( groupA.length > 1 ) {//包含选择器额外参数
 				String tmpStr = groupA[1];
 				if( groupA[1].indexOf("-") > 0 ) {//判断是否包含范围    
