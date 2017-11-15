@@ -396,7 +396,7 @@ public class task {
 			Document doc = null;
 			Elements array = null;
 			int l = sels.length;
-			doc =Jsoup.connect(url).get();
+			doc = Jsoup.parse( request.page(url) );
 			Object jqObj = doc;
 			for(int i =0; i < l; i++ ) {
 				List<crawlerSelector> csl = getSelecter(sels[i]); 
@@ -440,7 +440,7 @@ public class task {
 
 			
 			//根据选择器从当前Doc找到新URL
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
