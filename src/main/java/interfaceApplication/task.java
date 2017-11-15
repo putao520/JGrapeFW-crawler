@@ -415,7 +415,7 @@ public class task {
 			Document doc = null;
 			Elements array = null;
 			int l = sels.length;
-			doc = Jsoup.parse( request.page(url) );
+			doc = Jsoup.parse( request.page(tempURL) );
 			Object jqObj = doc;
 			for(int i =0; i < l; i++ ) {
 				List<crawlerSelector> csl = getSelecter(sels[i]); 
@@ -442,18 +442,17 @@ public class task {
 				if( element.hasAttr("href") ) {//是否包含超链接
 					nextURL = element.attr("href");
 					if( StringHelper.InvaildString( nextURL ) ){
-						url = urlContent.filterURL(url, nextURL);
+						tempURL = urlContent.filterURL(tempURL, nextURL);
 						result.setCur(nextURL);
 					}
 					else {
 						result = null;
-						nlogger.login("输入的选择器href属性值不合法！ 选择器:" + url + "->" + selecters);
-						
+						nlogger.login("输入的选择器href属性值不合法！ 选择器:" + tempURL + "->" + selecters);
 					}
 				}
 				else {
 					result = null;
-					nlogger.login("输入的选择器不包含href属性！ 选择器:" + url + "->" + selecters);
+					nlogger.login("输入的选择器不包含href属性！ 选择器:" + tempURL + "->" + selecters);
 				}
 			}
 
