@@ -193,30 +193,36 @@ public class task {
 								JSONObject dataResult = new JSONObject();
 								for(Object obj : dataBlock) {
 									block = (JSONObject)obj;
-									dataResult.put( block.getString("key") , dataSelecter( contentURL,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT")) );
-									
+									Object ro = dataSelecter( contentURL,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT"));
+									if( ro != null) {
+										dataResult.put( block.getString("key") , ro );
+									}
+									else {
+										break;
+									}
 								}
 								//---------------投递采集来 的数据
 								String collect = taskInfo.getString("collectApi");
-								if( StringHelper.InvaildString( collect ) ) {
-									
-									JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
-									appIns apps = appsProxy.getCurrentAppInfo();
-									JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
-									/*
-									 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
-									 * */
-									if( rjson != null && rjson.containsKey("errorcode") ) {
-										if( rjson.getInt("errorcode") != 0 ) {
-											System.out.println("crawler system breaking by remoteSystem!");
-											contentURL = null;
-											break;
+								if( dataResult != null && dataResult.size() > 0 ) {
+									if( StringHelper.InvaildString( collect ) ) {
+										JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
+										appIns apps = appsProxy.getCurrentAppInfo();
+										JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
+										/*
+										 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
+										 * */
+										if( rjson != null && rjson.containsKey("errorcode") ) {
+											if( rjson.getInt("errorcode") != 0 ) {
+												System.out.println("crawler system breaking by remoteSystem!");
+												contentURL = null;
+												break;
+											}
 										}
+										rb = true;
 									}
-									rb = true;
-								}
-								else {
-									nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
+									else {
+										nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
+									}
 								}
 							}
 							urlContent nextUrlObj;
@@ -312,6 +318,9 @@ public class task {
 			else {//目标选择模式
 				jqObj = tempArray;
 			}
+			if( tempArray.size() == 0  ) {
+				break;
+			}
 			if( netMode ) {//网络目标模式
 				Element ele = tempArray.get(0);//获得第一个元素
 				if( ele.hasAttr("href") ) {
@@ -331,9 +340,12 @@ public class task {
 		Elements els =(Elements)jqObj;
 
 		Element node = els != null && els.size() > 0 ? els.get(0) : null;
-		String rString = node != null ? (isTEXT ? node.text() : safeHTML(node)) : "";
-		Object ro;
-		ro = (new JSONObject("url",currentURL)).puts("content", rString);
+		String rString = null;
+		Object ro = null;
+		if( node != null ) {
+			rString = (isTEXT ? node.text() : safeHTML(node));
+			ro = (new JSONObject("url",currentURL)).puts("content", rString);
+		}
 		return ro;
 	}
 	
