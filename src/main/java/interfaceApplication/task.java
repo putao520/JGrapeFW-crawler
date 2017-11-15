@@ -6,12 +6,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.naming.InitialContext;
 
+import org.eclipse.jetty.util.thread.strategy.ExecuteProduceConsume;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
@@ -58,6 +60,9 @@ public class task {
 	private static boolean stateRun;
 	//private static Thread ticktockThread = null;
 	private static HashMap<Integer, ScheduledExecutorService> ticktockThread = null;
+	
+	private static ExecutorService taskWorker;
+	
 	private GrapeTreeDBModel db;
 	private String pkString;
 	private static final String lockerName = "crawlerTask_Query_Locker";
@@ -67,6 +72,7 @@ public class task {
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
+		taskWorker = Executors.newFixedThreadPool( 50 );
 	}
 	/**启动采集模块服务
 	 * @return
@@ -142,11 +148,15 @@ public class task {
 		db.data(new JSONObject("runstate",1)).update();//更新任务状态运行中
 		for(Object obj : taskList) {
 			json = (JSONObject)obj;
-			//long startTime = TimeHelper.nowMillis();
-			long taskrl = ( !taskRun(json) ) ? 2 : 0;
-			db.eq(pkString, json.getString("_id")).data( (new JSONObject("runstate",taskrl)).puts("neartime", TimeHelper.nowMillis() ) ).update();//更新任务状态为执行结果
+			appendTask(json);
 		}
 		return "";
+	}
+	private void appendTask(JSONObject json) {
+		taskWorker.submit( ()->{
+			long taskrl = ( !taskRun(json) ) ? 2 : 0;
+			_db().eq(pkString, json.getString("_id")).data( (new JSONObject("runstate",taskrl)).puts("neartime", TimeHelper.nowMillis() ) ).update();//更新任务状态为执行结果
+		} );
 	}
 	
 	/**执行任务
@@ -444,11 +454,15 @@ public class task {
 		super.finalize();
 	}
 	*/
-	public task() {
-		db = new GrapeTreeDBModel();
+	private GrapeTreeDBModel _db() {
+		GrapeTreeDBModel db = new GrapeTreeDBModel();
 		GrapeDBSpecField gdb = new GrapeDBSpecField();
 		gdb.importDescription( appsProxy.tableConfig("crawlerTask") );
 		db.descriptionModel(gdb).bind();
+		return db;
+	}
+	public task() {
+		db = _db();
 		pkString = db.getPk();
 	}
 	@SuppressWarnings("unchecked")
