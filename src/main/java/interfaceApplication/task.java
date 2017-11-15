@@ -153,7 +153,9 @@ public class task {
 		return "";
 	}
 	private void appendTask(JSONObject json) {
+		appIns apps = appsProxy.getCurrentAppInfo();
 		taskWorker.submit( ()->{
+			appsProxy.setCurrentAppInfo(apps);
 			long taskrl = ( !taskRun(json) ) ? 2 : 0;
 			_db().eq(pkString, json.getString("_id")).data( (new JSONObject("runstate",taskrl)).puts("neartime", TimeHelper.nowMillis() ) ).update();//更新任务状态为执行结果
 		} );
