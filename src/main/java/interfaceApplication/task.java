@@ -254,7 +254,6 @@ public class task {
 	 */
 	private Object dataSelecter(String curhref,Document doc , List<crawlerSelector> sels,boolean isTEXT){
 		Object jqObj = doc;
-		String _hString = null;
 		Elements array = null;
 		Elements tempArray = null;
 		String selectStr;
@@ -307,7 +306,6 @@ public class task {
 					String url = urlContent.filterURL(curhref, ele.attr("href")  );
 					curhref = url;
 					currentURL = curhref;
-					_hString= url;
 					try {
 						jqObj =Jsoup.connect(url).get();
 					} catch (IOException e) {
