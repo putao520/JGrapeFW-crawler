@@ -555,7 +555,7 @@ public class task {
 	 * @return
 	 */
 	public String getAll(){
-		return rMsg.netMSG(true, db.select()); 
+		return rMsg.netMSG(true, db.desc("time").select()); 
 	}
 	
 	/**分页方式获得任务信息
@@ -570,7 +570,7 @@ public class task {
 		if( max <= 0 ){
 			return rMsg.netMSG(false, "页长度错误");
 		}
-		return rMsg.netPAGE(idx, max, db.dirty().count(), db.page(idx, max));
+		return rMsg.netPAGE(idx, max, db.dirty().count(), db.desc("time").page(idx, max));
 	}
 	
 	/**根据条件获得分页数据
@@ -589,7 +589,7 @@ public class task {
 		}
 		JSONArray condObj = org.json.simple.JSONArray.toJSONArray(cond);
 		if( condObj != null ) {
-			db.where(condObj);
+			db.where(condObj).desc("time");
 			out = rMsg.netPAGE(idx, max, db.dirty().count(), db.page(idx, max));
 		}
 		else {
