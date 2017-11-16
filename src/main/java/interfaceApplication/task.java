@@ -72,7 +72,7 @@ public class task {
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
-		taskWorker = Executors.newFixedThreadPool( 50 );
+		taskWorker = Executors.newFixedThreadPool( 150 );
 	}
 	/**启动采集模块服务
 	 * @return
@@ -154,11 +154,11 @@ public class task {
 	}
 	private void appendTask(JSONObject json) {
 		appIns apps = appsProxy.getCurrentAppInfo();
-		taskWorker.submit( ()->{
+		taskWorker.execute(()->{
 			appsProxy.setCurrentAppInfo(apps);
 			long taskrl = ( !taskRun(json) ) ? 2 : 0;
 			_db().eq(pkString, json.getString("_id")).data( (new JSONObject("runstate",taskrl)).puts("neartime", TimeHelper.nowMillis() ) ).update();//更新任务状态为执行结果
-		} );
+		});
 	}
 	
 	/**执行任务
