@@ -228,7 +228,8 @@ public class task {
 							urlContent nextUrlObj;
 							switch(numberHelper.number2int(loopMode) ) {
 							case 1://通过起始页获得
-								nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
+								nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
+								nextUrlObj.setUp( nextUrlObj.getCur() );
 								loopURL = nextUrlObj != null ? nextUrlObj.getCur() : null;
 								break;
 							case 2://通过内容页获得
