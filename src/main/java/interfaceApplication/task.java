@@ -72,7 +72,7 @@ public class task {
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
-		taskWorker = Executors.newFixedThreadPool( 150 );
+		taskWorker = Executors.newFixedThreadPool( 5 );
 	}
 	/**启动采集模块服务
 	 * @return
