@@ -308,9 +308,7 @@ public class task {
 		int method = initJson.getInt("method");
 		JSONArray _aArray = JSONArray.toJSONArray( sels );
 		String store = base;
-		if( method == 1 ) {
-			store = host;
-		}
+
 		Matcher m = regx.matcher(store);
 		if( m.matches() ) {
 			int maxBlock = m.groupCount();
