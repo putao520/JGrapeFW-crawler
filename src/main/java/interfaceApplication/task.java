@@ -10,6 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.naming.InitialContext;
 
@@ -22,6 +24,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.omg.CORBA.StringHolder;
 
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.sun.star.beans.StringPair;
 import com.sun.star.uno.RuntimeException;
 
@@ -33,6 +36,7 @@ import apps.appsProxy;
 import database.db;
 import httpClient.request;
 import httpServer.grapeHttpUnit;
+import interfaceController.interfaceUnit;
 import interfaceModel.GrapeDBSpecField;
 import interfaceModel.GrapeTreeDBModel;
 import interfaceType.apiType;
@@ -68,6 +72,8 @@ public class task {
 	private static final String lockerName = "crawlerTask_Query_Locker";
 	
 	private String currentURL = "";
+	
+	private Pattern regx = Pattern.compile("\\[\\%\\%\\]");
 	//private static final String RunnerlockerName = "crawlerTask_Running_Locker";
 	static {
 		stateRun = true;
@@ -161,11 +167,164 @@ public class task {
 		});
 	}
 	
+	@SuppressWarnings("unchecked")
+	private boolean catchData(String contentURL,JSONObject taskInfo,JSONObject postData) throws FailingHttpStatusCodeException, MalformedURLException, IOException {
+		boolean rb = true;
+		String html = "";
+		if( postData != null ) {
+			html = request.Post(contentURL, postData);
+		}
+		else {
+			html = request.page(contentURL);
+		}
+		Document doc = Jsoup.parse(html) ;
+		JSONArray dataBlock = taskInfo.getJsonArray("data");
+		JSONObject block;
+		JSONObject dataResult = new JSONObject();
+		for(Object obj : dataBlock) {
+			block = (JSONObject)obj;
+			Object ro = dataSelecter( contentURL,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT"));
+			if( ro != null) {
+				dataResult.put( block.getString("key") , ro );
+			}
+			else {
+				break;
+			}
+		}
+		//---------------投递采集来 的数据
+		String collect = taskInfo.getString("collectApi");
+		if( dataResult != null && dataResult.size() > 0 ) {
+			if( StringHelper.InvaildString( collect ) ) {
+				JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
+				appIns apps = appsProxy.getCurrentAppInfo();
+				JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
+				/*
+				 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
+				 * */
+				if( rjson != null && rjson.containsKey("errorcode") ) {
+					if( rjson.getInt("errorcode") != 0 ) {
+						System.out.println("crawler system breaking by remoteSystem!");
+						contentURL = null;
+						return false;
+					}
+				}
+				rb = true;
+			}
+			else {
+				nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
+			}
+		}
+		return rb;
+	}
+	
+	private boolean PageMode(String host, JSONObject initJson,JSONObject taskInfo) {
+		boolean rb = false;
+		urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );
+		if( contentUrlObj != null ) {
+			String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
+			
+			while( contentURL != null ) {
+				try {
+					currentURL = contentURL;
+					//----------------确定循环数据
+					JSONObject loopJson = taskInfo.getJson("loop");
+					int loopMode = loopJson.getInt("mode");
+					String loopURL = null;
+					do {
+						//---------------开始采集内容
+						if( contentURL != null ) {
+							if( catchData(contentURL,taskInfo,null ) == false ) {
+								break;
+							}
+						}
+						urlContent nextUrlObj;
+						switch(numberHelper.number2int(loopMode) ) {
+						case 1://通过起始页获得
+							nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
+							
+							if( nextUrlObj != null ) {
+								loopURL = nextUrlObj.getCur();
+								contentUrlObj.setUp( nextUrlObj.getCur() );;
+							}
+							else {
+								loopURL = null;
+							}
+							break;
+						case 2://通过内容页获得
+							nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
+							loopURL = nextUrlObj != null ? nextUrlObj.getCur() : null;
+							break;
+						default:
+							loopURL = null;
+							break;
+						}
+						contentURL = loopURL;
+					}while( contentURL != null);
+					//-------------------------
+				} catch (Exception e) {
+					nlogger.login(e,"url" + contentURL + "  ->异常");
+					//nlogger.logout(e);
+					contentURL = null;
+					e.printStackTrace();
+					rb = false;
+				}
+			}
+		}
+		return rb;
+	}
+	
+	public void updateURL(String host,int method, String runBase, JSONArray _aArray,int idx,JSONObject taskInfo) {
+		if( idx >= _aArray.size()) {//到底了
+			try {
+				if( method == 1 ) {//POST请求
+					catchData(host,taskInfo,JSONObject.toJSON(runBase) );
+				}
+				else {
+					catchData(runBase,taskInfo, null );
+				}
+				//System.out.println(runBase);
+				return;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		JSONObject json = (JSONObject)_aArray.get(idx);
+		int init = json.getInt("init");
+		int over = json.getInt("end");
+		int step = json.containsKey("step") ? json.getInt("step") : 1;
+		
+		for(int s = init; s<=over; s=s+step ) {
+			String tempBase = runBase;
+			tempBase = tempBase.replaceFirst("\\[\\%\\%\\]", StringHelper.Any2String(s) );
+			updateURL(host,method,tempBase,_aArray,idx + 1,taskInfo);
+		}
+	}
+	
+	private boolean URLMode(String host,JSONObject initJson,JSONObject taskInfo) {
+		boolean rb = false;
+		String base = initJson.getString("base");//主URL
+		String sels = initJson.getString("selecter");
+		int method = initJson.getInt("method");
+		JSONArray _aArray = JSONArray.toJSONArray( sels );
+		Matcher m = regx.matcher(base);
+		if( m.matches() ) {
+			int maxBlock = m.groupCount();
+			if( maxBlock == _aArray.size() ) {
+				String runBase = base;
+				updateURL(host,method,runBase,_aArray,0,taskInfo);
+			}
+			else {
+				nlogger.login("任务配置错误 url：" + base + " && 选择器组:" + sels + " 不匹配");
+			}
+		}
+		return rb;
+	}
+	
 	/**执行任务
 	 * @param taskBlock
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	private boolean taskRun(JSONObject taskBlock) {
 		boolean rb = false;
 		
@@ -173,90 +332,14 @@ public class task {
 		if( taskInfo != null ) {
 			String host = taskInfo.getString("host");
 			JSONObject initJson = taskInfo.getJson("init");
-			urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );
-			if( contentUrlObj != null ) {
-				String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
-				
-				while( contentURL != null ) {
-					try {
-						currentURL = contentURL;
-						//----------------确定循环数据
-						JSONObject loopJson = taskInfo.getJson("loop");
-						int loopMode = loopJson.getInt("mode");
-						String loopURL = null;
-						do {
-							//---------------开始采集内容
-							if( contentURL != null ) {
-								Document doc = Jsoup.parse(request.page(contentURL)) ;
-								JSONArray dataBlock = taskInfo.getJsonArray("data");
-								JSONObject block;
-								JSONObject dataResult = new JSONObject();
-								for(Object obj : dataBlock) {
-									block = (JSONObject)obj;
-									Object ro = dataSelecter( contentURL,doc, getSelecter(block.getString("selecter")),  block.getBoolean("isTEXT"));
-									if( ro != null) {
-										dataResult.put( block.getString("key") , ro );
-									}
-									else {
-										break;
-									}
-								}
-								//---------------投递采集来 的数据
-								String collect = taskInfo.getString("collectApi");
-								if( dataResult != null && dataResult.size() > 0 ) {
-									if( StringHelper.InvaildString( collect ) ) {
-										JSONObject postParam = new JSONObject("param",codec.encodeFastJSON( dataResult.toJSONString() ));
-										appIns apps = appsProxy.getCurrentAppInfo();
-										JSONObject rjson = JSONObject.toJSON( (String)appsProxy.proxyCall(collect,postParam,apps) );
-										/*
-										 * RPC返回对象里的 errorcode 不为0 时停止继续执行采集任务
-										 * */
-										if( rjson != null && rjson.containsKey("errorcode") ) {
-											if( rjson.getInt("errorcode") != 0 ) {
-												System.out.println("crawler system breaking by remoteSystem!");
-												contentURL = null;
-												break;
-											}
-										}
-										rb = true;
-									}
-									else {
-										nlogger.logout("url" + contentURL + "  ->数据收集Api异常");
-									}
-								}
-							}
-							urlContent nextUrlObj;
-							switch(numberHelper.number2int(loopMode) ) {
-							case 1://通过起始页获得
-								nextUrlObj = getURL( "", contentUrlObj.getUp(), loopJson.getString("selecter") );//获得下一页URL
-								
-								if( nextUrlObj != null ) {
-									loopURL = nextUrlObj.getCur();
-									contentUrlObj.setUp( nextUrlObj.getCur() );;
-								}
-								else {
-									loopURL = null;
-								}
-								break;
-							case 2://通过内容页获得
-								nextUrlObj = getURL( "", contentURL, loopJson.getString("selecter") );//获得下一页URL
-								loopURL = nextUrlObj != null ? nextUrlObj.getCur() : null;
-								break;
-							default:
-								loopURL = null;
-								break;
-							}
-							contentURL = loopURL;
-						}while( contentURL != null);
-						//-------------------------
-					} catch (Exception e) {
-						nlogger.login(e,"url" + contentURL + "  ->异常");
-						//nlogger.logout(e);
-						contentURL = null;
-						e.printStackTrace();
-						rb = false;
-					}
-				}
+			
+			int typeMode = initJson.getInt("type");
+			switch(typeMode) {
+			case 0:
+				rb = PageMode(host,initJson,taskInfo);
+				break;
+			case 1:
+				rb = URLMode(host,initJson,taskInfo);
 			}
 		}
 		return rb;
