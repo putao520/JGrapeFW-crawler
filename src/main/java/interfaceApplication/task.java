@@ -78,7 +78,7 @@ public class task {
 	static {
 		stateRun = true;
 		ticktockThread = new HashMap<>();
-		taskWorker = Executors.newFixedThreadPool( 5 );
+		taskWorker = Executors.newFixedThreadPool( 1 );
 	}
 	/**启动采集模块服务
 	 * @return
@@ -307,7 +307,11 @@ public class task {
 		String sels = initJson.getString("selecter");
 		int method = initJson.getInt("method");
 		JSONArray _aArray = JSONArray.toJSONArray( sels );
-		Matcher m = regx.matcher(base);
+		String store = base;
+		if( method == 1 ) {
+			store = host;
+		}
+		Matcher m = regx.matcher(store);
 		if( m.matches() ) {
 			int maxBlock = m.groupCount();
 			if( maxBlock == _aArray.size() ) {
@@ -315,7 +319,7 @@ public class task {
 				updateURL(host,method,runBase,_aArray,0,taskInfo);
 			}
 			else {
-				nlogger.login("任务配置错误 url：" + base + " && 选择器组:" + sels + " 不匹配");
+				nlogger.login("任务配置错误 url：" + store + " && 选择器组:" + sels + " 不匹配");
 			}
 		}
 		return rb;
