@@ -2,6 +2,8 @@ package Grape.crawler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -27,7 +29,6 @@ public class App
     @SuppressWarnings("unchecked")
 	public static void main( String[] args )
     {	    	
-    	
     	//System.out.println(request.Get("http://www.ahgzw.gov.cn/gzwweb/list.jsp?strWebSiteId=1448865560847002&strColId=1448867943579006&_index=1"));
     	
     	//System.out.println( urlContent.filterURL("http://www.baidu.com/a/b/", "index.html") );

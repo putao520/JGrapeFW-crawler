@@ -310,16 +310,18 @@ public class task {
 		String store = base;
 
 		Matcher m = regx.matcher(store);
-		if( m.matches() ) {
-			int maxBlock = m.groupCount();
-			if( maxBlock == _aArray.size() ) {
-				String runBase = base;
-				updateURL(host,method,runBase,_aArray,0,taskInfo);
-			}
-			else {
-				nlogger.login("任务配置错误 url：" + store + " && 选择器组:" + sels + " 不匹配");
-			}
+		int maxBlock =0;
+		while( m.find() ) {
+			maxBlock++;
 		}
+		if( maxBlock == _aArray.size() ) {
+			String runBase = base;
+			updateURL(host,method,runBase,_aArray,0,taskInfo);
+		}
+		else {
+			nlogger.login("任务配置错误 url：" + store + " && 选择器组:" + sels + " 不匹配");
+		}
+		
 		return rb;
 	}
 	
