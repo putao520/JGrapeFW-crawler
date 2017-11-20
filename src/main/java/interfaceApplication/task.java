@@ -306,7 +306,7 @@ public class task {
 		String base = initJson.getString("base");//主URL
 		String sels = initJson.getString("selecter");
 		int method = initJson.getInt("method");
-		JSONArray _aArray = JSONArray.toJSONArray( sels );
+		JSONArray _aArray = JSONArray.toJSONArray( "[" + sels + "]" );
 		String store = base;
 
 		Matcher m = regx.matcher(store);
