@@ -338,7 +338,7 @@ public class task {
 			String host = taskInfo.getString("host");
 			JSONObject initJson = taskInfo.getJson("init");
 			
-			int typeMode = initJson.getInt("type");
+			int typeMode = numberHelper.number2int( initJson.getString("type"));
 			switch(typeMode) {
 			case 0:
 				rb = PageMode(host,initJson,taskInfo);
@@ -480,9 +480,17 @@ public class task {
 					case "PREV":
 						directState = true;
 						break;
+					case "FRIST":
+						directState = null;
+						startIdx = 0;
+						break;
+					case "END":
+						directState = null;
+						startIdx = -1;
+						break;
 					default:
 						directState = null;
-						startIdx = numberHelper.number2int(tmpStr);
+						startIdx = numberHelper.number2int(tmpStr.trim());
 						break;
 				}
 			}
@@ -528,6 +536,9 @@ public class task {
 					if( sel.hasDirection() ) {//包含游标指针
 						int stepLength = sel.getStepLength();
 						curPos = sel.getDirection() ? curPos - stepLength : curPos + stepLength;
+					}
+					if( curPos == -1 ) {//是最后一个
+						curPos = array.size() - 1;
 					}
 					jqObj = (array != null && array.size() > 0) ? array.get(curPos) : jqObj;//获得目标元素 
 				}
