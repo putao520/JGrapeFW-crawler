@@ -218,7 +218,7 @@ public class task {
 	}
 	
 	private boolean PageMode(String host, JSONObject initJson,JSONObject taskInfo) {
-		boolean rb = false;
+		boolean rb = true;
 		urlContent contentUrlObj = getURL( host, initJson.getString("base"), initJson.getString("selecter") );
 		if( contentUrlObj != null ) {
 			String contentURL = contentUrlObj.getCur();//获得采集任务起始地址
