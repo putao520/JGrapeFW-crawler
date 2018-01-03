@@ -86,6 +86,7 @@ public class task {
 	public String startService(){
 		appIns apps = appsProxy.getCurrentAppInfo();
 		if( apps != null && !ticktockThread.containsKey(apps.appid) ) {
+			resetTaskState();
 			ScheduledExecutorService serv = Executors.newSingleThreadScheduledExecutor();;
 			distributedLocker servLocker = distributedLocker.newLocker(lockerName);
 			if( servLocker.lock() ) {//判断是否锁定成功
@@ -108,6 +109,12 @@ public class task {
 		}
 		return rMsg.netState(true);
 	}
+	private long resetTaskState() {
+		JSONObject updateObj = new JSONObject();
+		updateObj.puts("runstate", 0);
+		return db.data(updateObj).updateAll();
+	}
+	
 	/**获得当前模块任务状态
 	 * @return
 	 */
@@ -121,6 +128,7 @@ public class task {
 	public String stopService() {
 		appIns apps = appsProxy.getCurrentAppInfo();
 		if( ticktockThread.containsKey(apps.appid) ) {
+			resetTaskState();
 			ScheduledExecutorService serv = ticktockThread.get(apps.appid);
 			if( !serv.isTerminated()) {
 				serv.shutdown();
@@ -151,7 +159,7 @@ public class task {
 			json = (JSONObject)obj;
 			db.or().eq(pkString, json.getString("_id"));
 		}
-		db.data(new JSONObject("runstate",1)).update();//更新任务状态运行中
+		db.data(new JSONObject("runstate",1)).updateAll();//更新任务状态运行中
 		for(Object obj : taskList) {
 			json = (JSONObject)obj;
 			appendTask(json);
