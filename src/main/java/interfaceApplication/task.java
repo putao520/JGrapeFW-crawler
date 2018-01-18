@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +62,7 @@ public class task {
 	public enum runState {
 	     running, idle, error 
 	}
-	private static boolean stateRun;
+	private static AtomicBoolean stateRun;
 	//private static Thread ticktockThread = null;
 	private static HashMap<Integer, ScheduledExecutorService> ticktockThread = null;
 	
@@ -76,7 +77,7 @@ public class task {
 	private Pattern regx = Pattern.compile("\\[\\%\\%\\]");
 	//private static final String RunnerlockerName = "crawlerTask_Running_Locker";
 	static {
-		stateRun = true;
+		stateRun = new AtomicBoolean(false);
 		ticktockThread = new HashMap<>();
 		taskWorker = Executors.newFixedThreadPool( 1 );
 	}
@@ -103,7 +104,8 @@ public class task {
 					appsProxy.proxyCall("/crawler/task/DelayBlock",apps);
 						//分块方式获得数据表数据，并执行过滤，最后生成结果值 
 					//}
-				}, 0, 1, TimeUnit.HOURS);
+				}, 0, 1, TimeUnit.MINUTES);
+				
 				ticktockThread.put(apps.appid, serv);
 			}
 		}
@@ -141,28 +143,32 @@ public class task {
 	//遍历任务
 	@SuppressWarnings("unchecked")
 	public String DelayBlock() {
-		JSONArray taskList = db.scan( (array)->{//获得符合条件的任务列表
-			JSONArray _array = new JSONArray();
-			JSONObject json;
-			for(Object obj : array) {
-				json = (JSONObject)obj;
-				if( json.getLong("state") == 1 ) {
-					if( (json.getLong("neartime") + json.getLong("runtime") <= TimeHelper.nowMillis()) && json.getLong("runstate") == 0 ) {
-						_array.add(obj);
+		if( stateRun.compareAndSet(false, true) ) {
+			JSONArray taskList = db.scan( (array)->{//获得符合条件的任务列表
+				JSONArray _array = new JSONArray();
+				JSONObject json;
+				for(Object obj : array) {
+					json = (JSONObject)obj;
+					if( json.getLong("state") == 1 ) {
+						if( (json.getLong("neartime") + json.getLong("runtime") <= TimeHelper.nowMillis()) && json.getLong("runstate") == 0 ) {
+							_array.add(obj);
+						}
 					}
 				}
+				return _array;
+			}, 30);//同步函数
+			
+			JSONObject json;
+			for(Object obj : taskList) {
+				json = (JSONObject)obj;
+				db.or().eq(pkString, json.getString("_id"));
 			}
-			return _array;
-		}, 30);
-		JSONObject json;
-		for(Object obj : taskList) {
-			json = (JSONObject)obj;
-			db.or().eq(pkString, json.getString("_id"));
-		}
-		db.data(new JSONObject("runstate",1)).updateAll();//更新任务状态运行中
-		for(Object obj : taskList) {
-			json = (JSONObject)obj;
-			appendTask(json);
+			db.data(new JSONObject("runstate",1)).updateAll();//更新任务状态运行中
+			for(Object obj : taskList) {
+				json = (JSONObject)obj;
+				appendTask(json);
+			}
+			stateRun.set(false);
 		}
 		return "";
 	}
@@ -310,7 +316,7 @@ public class task {
 	}
 	
 	private boolean URLMode(String host,JSONObject initJson,JSONObject taskInfo) {
-		boolean rb = false;
+		boolean rb = true;
 		String base = initJson.getString("base");//主URL
 		String sels = initJson.getString("selecter");
 		int method = initJson.getInt("method");
