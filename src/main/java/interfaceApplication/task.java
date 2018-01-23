@@ -158,15 +158,18 @@ public class task {
 				return _array;
 			}, 30);//同步函数
 			
-			JSONObject json;
-			for(Object obj : taskList) {
-				json = (JSONObject)obj;
-				db.or().eq(pkString, json.getString("_id"));
-			}
-			db.data(new JSONObject("runstate",1)).updateAll();//更新任务状态运行中
-			for(Object obj : taskList) {
-				json = (JSONObject)obj;
-				appendTask(json);
+			if( taskList.size() > 0 ) {
+				JSONObject json;
+				for(Object obj : taskList) {
+					json = (JSONObject)obj;
+					db.or().eq(pkString, json.getString("_id"));
+				}
+				db.data(new JSONObject("runstate",1)).updateAll();//更新任务状态运行中
+				for(Object obj : taskList) {
+					json = (JSONObject)obj;
+					appendTask(json);
+				}
+				
 			}
 			stateRun.set(false);
 		}
